@@ -1,0 +1,15 @@
+huggingface==0.0.1
+transformers>=4.45.2
+evaluate>=0.4.3
+torch>=2.4.1
+torchvision>=0.19.1
+torchaudio>=2.4.1
+datasets>=2.14.1
+accelerate>=0.24.1
+peft>=0.10.0
+bitsandbytes>=0.44.1
+einops>=0.7.0
+safetensors>=0.4.1
+openai>=1.35.0
+python-dotenv>=1.0.0
+-e .

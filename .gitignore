@@ -1,0 +1,11 @@
+.env
+
+*/*.ipynb
+*.egg-info
+
+.DS_Store
+.pytest_cache
+
+*/__pycache__
+
+.venv
