@@ -71,7 +71,11 @@ st.caption(f"Model in use: **{manager.conversation.settings.model}**")
 for message in manager.get_messages(include_system=False):
     chat_role = "assistant" if message.role == Role.ASSISTANT else "user"
     if chat_role == "assistant":
-        model_label = manager.conversation.settings.model
+        model_label = getattr(
+            message,
+            "model",
+            manager.conversation.settings.model,
+        )
         content = f"*_{model_label}_*\n\n{message.content}"
     else:
         content = message.content
@@ -86,10 +90,19 @@ if prompt := st.chat_input("Type your message…"):
     with st.spinner("Thinking…"):
         try:
             answer = manager.chat(prompt)
-            st.chat_message("assistant").markdown(answer)
+            last_msg = manager.get_messages()[-1]
+            model_label_resp = getattr(
+                last_msg,
+                "model",
+                manager.conversation.settings.model,
+            )
+            st.chat_message("assistant").markdown(
+                f"*_{model_label_resp}_*\n\n{answer}"
+            )
         except Exception as exc:
             error_text = (
                 f"⚠️ **Error calling OpenAI:** {exc}\n\n"
-                "Please revise your prompt or choose a different model and try again."
+                "Please revise your prompt or choose a different model and "
+                "try again."
             )
             st.chat_message("assistant").markdown(error_text)

@@ -24,6 +24,13 @@ class Message(BaseModel):
         min_length=1,
         description="The message content"
     )
+    model: Optional[str] = Field(
+        default=None,
+        description=(
+            "Model that generated the message "
+            "(assistant only)"
+        ),
+    )
     timestamp: Optional[datetime] = Field(
         default_factory=datetime.now,
         description="When the message was created"
@@ -135,9 +142,18 @@ class Conversation(BaseModel):
         description="List of conversation messages"
     )
 
-    def add_message(self, role: Role, content: str) -> Message:
+    def add_message(
+        self,
+        role: Role,
+        content: str,
+        model: Optional[str] = None,
+    ) -> Message:
         """Add a message to the conversation."""
-        message = Message(role=role, content=content)
+        message = Message(
+            role=role,
+            content=content,
+            model=model,
+        )
         self.messages.append(message)
         self.metadata.message_count = len(self.messages)
         self.metadata.updated_at = datetime.now()

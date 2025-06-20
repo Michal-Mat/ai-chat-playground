@@ -85,8 +85,13 @@ class ConversationManager:
         return self.conversation.add_message(Role.USER, content)
 
     def add_assistant_message(self, content: str) -> Message:
-        """Add an assistant message to the conversation."""
-        return self.conversation.add_message(Role.ASSISTANT, content)
+        """Add an assistant message and record the model used."""
+        model_name = self.conversation.settings.model
+        return self.conversation.add_message(
+            Role.ASSISTANT,
+            content,
+            model=model_name,
+        )
 
     async def get_ai_response_async(
         self,
