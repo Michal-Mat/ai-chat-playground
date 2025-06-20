@@ -9,7 +9,7 @@ from datetime import datetime
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field, field_validator
 import json
-from conversations.types import Role
+from conversations.types import Role, Persona
 
 
 class Message(BaseModel):
@@ -30,6 +30,10 @@ class Message(BaseModel):
             "Model that generated the message "
             "(assistant only)"
         ),
+    )
+    persona: Optional[Persona] = Field(
+        default=None,
+        description="Persona used for the assistant reply",
     )
     timestamp: Optional[datetime] = Field(
         default_factory=datetime.now,
@@ -94,6 +98,10 @@ class ChatSettings(BaseModel):
         le=2.0,
         description="Presence penalty (-2.0 to 2.0)"
     )
+    persona: Optional[Persona] = Field(
+        default=None,
+        description="Assistant persona to use",
+    )
 
     @field_validator('model')
     def validate_model_name(cls, v):
@@ -147,12 +155,14 @@ class Conversation(BaseModel):
         role: Role,
         content: str,
         model: Optional[str] = None,
+        persona: Optional[Persona] = None,
     ) -> Message:
         """Add a message to the conversation."""
         message = Message(
             role=role,
             content=content,
             model=model,
+            persona=persona,
         )
         self.messages.append(message)
         self.metadata.message_count = len(self.messages)

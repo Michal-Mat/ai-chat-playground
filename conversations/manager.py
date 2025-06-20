@@ -87,10 +87,12 @@ class ConversationManager:
     def add_assistant_message(self, content: str) -> Message:
         """Add an assistant message and record the model used."""
         model_name = self.conversation.settings.model
+        persona_val = self.conversation.settings.persona
         return self.conversation.add_message(
             Role.ASSISTANT,
             content,
             model=model_name,
+            persona=persona_val,
         )
 
     async def get_ai_response_async(
@@ -366,3 +368,19 @@ class ConversationManager:
         manager = cls.from_conversation(client, conversation)
         manager.repository = repo  # type: ignore[attr-defined]
         return manager
+
+    # ------------------------------------------------------------------
+    # System prompt utilities
+    # ------------------------------------------------------------------
+
+    def set_system_prompt(self, content: str) -> Message:
+        """Create or update the system prompt for the conversation."""
+        sys_msg = self.conversation.get_system_message()
+        if sys_msg is None:
+            return self.add_system_message(content)
+
+        # Update existing system message in-place
+        sys_msg.content = content
+        sys_msg.timestamp = datetime.now()
+        self.conversation.metadata.updated_at = datetime.now()
+        return sys_msg

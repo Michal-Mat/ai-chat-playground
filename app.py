@@ -5,12 +5,12 @@ from dotenv import load_dotenv
 
 from integrations.openai.client import create_openai_client
 from conversations.manager import ConversationManager
-from conversations.types import Role, ChatModel  # noqa: E305
+from conversations.types import Role, ChatModel, Persona  # noqa: E305
 
 # Load environment variables (e.g., OPENAI_API_KEY)
 load_dotenv()
 
-st.set_page_config(page_title="Hugging Chat", page_icon="🤖")
+st.set_page_config(page_title="Open AI Chat", page_icon="🤖")
 
 # -----------------------------------------------------------------------------
 # Helper – get or create a ConversationManager tied to the user session
@@ -38,6 +38,7 @@ manager = _get_manager()
 with st.sidebar:
     st.header("Settings")
     model_options = [m.value for m in ChatModel]
+    persona_options = ["None"] + [p.value for p in Persona]
     default_index = (
         model_options.index(manager.conversation.settings.model)
         if manager.conversation.settings.model in model_options
@@ -49,7 +50,25 @@ with st.sidebar:
         index=default_index,
     )
 
-    # Update manager if model selection changed
+    selected_persona = st.selectbox(
+        "Assistant persona",
+        options=persona_options,
+        index=(
+            persona_options.index(manager.conversation.settings.persona.value)
+            if manager.conversation.settings.persona
+            else 0
+        ),
+    )
+
+    if (selected_persona == "None"):
+        persona_obj = None
+    else:
+        persona_obj = Persona(selected_persona)
+
+    if persona_obj != manager.conversation.settings.persona:
+        manager.update_settings(persona=persona_obj)
+        st.rerun()
+
     if selected_model != manager.conversation.settings.model:
         manager.update_settings(model=selected_model)
         st.rerun()
@@ -76,7 +95,11 @@ for message in manager.get_messages(include_system=False):
             "model",
             manager.conversation.settings.model,
         )
-        content = f"*_{model_label}_*\n\n{message.content}"
+        persona_label = getattr(message, "persona", None)
+        tag = model_label
+        if persona_label:
+            tag += f" · {persona_label}"
+        content = f"*_{tag}_*\n\n{message.content}"
     else:
         content = message.content
     st.chat_message(chat_role).markdown(content)
@@ -96,8 +119,12 @@ if prompt := st.chat_input("Type your message…"):
                 "model",
                 manager.conversation.settings.model,
             )
+            persona_resp = getattr(last_msg, "persona", None)
+            tag_resp = model_label_resp
+            if persona_resp:
+                tag_resp += f" · {persona_resp}"
             st.chat_message("assistant").markdown(
-                f"*_{model_label_resp}_*\n\n{answer}"
+                f"*_{tag_resp}_*\n\n{answer}"
             )
         except Exception as exc:
             error_text = (
