@@ -83,12 +83,38 @@ with st.sidebar:
         st.session_state.manager = manager
         st.rerun()
 
+    # --- System prompt editor ---
+    sys_msg = manager.conversation.get_system_message()
+    current_sys_prompt = sys_msg.content if sys_msg else ""
+
+    st.caption(f"_Current prompt:_ {current_sys_prompt or '—'}")
+
+    new_sys_prompt = st.text_area(
+        "Edit system prompt (leave blank to keep current)",
+        value="",
+        placeholder=current_sys_prompt,
+        height=100,
+    )
+
+    if st.button("Update system prompt") and new_sys_prompt.strip():
+        manager.set_system_prompt(new_sys_prompt.strip())
+        st.rerun()
+
+    st.divider()
+
 # Show active model caption after potential update
 st.caption(f"Model in use: **{manager.conversation.settings.model}**")
 
-# Display existing messages
-for message in manager.get_messages(include_system=False):
+# Display existing messages (include system prompt if present)
+for message in manager.get_messages(include_system=True):
     chat_role = "assistant" if message.role == Role.ASSISTANT else "user"
+    if message.role == Role.SYSTEM:
+        st.chat_message(
+            "assistant",
+        ).markdown(
+            f"🎯 _System prompt:_ {message.content}"
+        )
+        continue
     if chat_role == "assistant":
         model_label = getattr(
             message,
