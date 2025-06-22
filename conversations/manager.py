@@ -174,16 +174,21 @@ class ConversationManager:
         user_message: str,
         settings_override: Optional[ChatSettings] = None
     ) -> str:
-        """
-        Send a user message and get AI response.
+        """Send a user message and get an AI response.
 
-        Args:
-            user_message: The user's message
-            settings_override: Optional settings to override defaults
-
-        Returns:
-            AI response content
+        If the *reasoning* flag is enabled in the active ``ChatSettings`` (or
+        the provided ``settings_override``) the manager will invoke the
+        multi-step reasoning flow. Otherwise it will default to a single call
+        to the model.
         """
+
+        settings = settings_override or self.conversation.settings
+
+        # If reasoning toggle is active, run the advanced flow.
+        if getattr(settings, "reasoning", False):
+            return self.chat_with_reasoning(user_message, settings_override)
+
+        # Otherwise fall back to the normal single-shot flow.
         self.add_user_message(user_message)
         return self.get_ai_response(settings_override)
 
@@ -384,3 +389,179 @@ class ConversationManager:
         sys_msg.timestamp = datetime.now()
         self.conversation.metadata.updated_at = datetime.now()
         return sys_msg
+
+    # ------------------------------------------------------------------
+    # Reasoning feature
+    # ------------------------------------------------------------------
+    def _is_complex_task(
+        self,
+        prompt: str,
+        settings: Optional[ChatSettings] = None,
+    ) -> bool:
+        """Return True if the prompt is complex according to the model."""
+        settings = settings or self.conversation.settings
+        classification_system = (
+            "You are a classifier that decides whether a user's request "
+            "requires multi-step reasoning. Respond with 'simple' if the "
+            "task can be answered in a single response, else respond with "
+            "'complex'. Respond with a single word ('simple' or 'complex')."
+            "Question example: what is the capital of France?"
+            "Answer example: 'simple'"
+            "Question example: what should I do to get a job in the US?"
+            "Answer example: 'complex'"
+        )
+        messages = [
+            {"role": "system", "content": classification_system},
+            {"role": "user", "content": prompt},
+        ]
+        response = self.client.chat_completion(
+            messages=messages,
+            model=settings.model,
+            temperature=0.0,
+            max_tokens=5,
+        )
+        decision = response.choices[0].message.content.strip().lower()
+        return "complex" in decision
+
+    def _describe_task(
+        self,
+        prompt: str,
+        settings: Optional[ChatSettings] = None,
+    ) -> str:
+        """Ask the model to describe what the user wants to do."""
+        settings = settings or self.conversation.settings
+        sys_msg = (
+            "You are an assistant that clarifies user intent. "
+            "Summarize in one or two sentences what the user wants to "
+            "achieve."
+        )
+        messages = [
+            {"role": "system", "content": sys_msg},
+            {"role": "user", "content": prompt},
+        ]
+        response = self.client.chat_completion(
+            messages=messages,
+            model=settings.model,
+            temperature=0.3,
+            max_tokens=150,
+        )
+        return response.choices[0].message.content.strip()
+
+    def _plan_steps(
+        self,
+        description: str,
+        settings: Optional[ChatSettings] = None,
+    ) -> List[str]:
+        """Ask the model to lay out steps to solve the problem."""
+        settings = settings or self.conversation.settings
+        sys_msg = (
+            "You are an expert planner. Given a problem description, "
+            "produce an ordered list of clear, high-level steps to solve it. "
+            "Respond with a numbered list."
+        )
+        messages = [
+            {"role": "system", "content": sys_msg},
+            {"role": "user", "content": description},
+        ]
+        response = self.client.chat_completion(
+            messages=messages,
+            model=settings.model,
+            temperature=0.3,
+            max_tokens=300,
+        )
+        plan_text = response.choices[0].message.content.strip()
+        # naive parsing: split by newline and keep non-empty lines
+        steps: List[str] = []
+        for line in plan_text.split("\n"):
+            cleaned = line.strip(" -")
+            if cleaned:
+                steps.append(cleaned)
+        if not steps:
+            steps = [plan_text]
+        return steps
+
+    def _solve_step(
+        self,
+        step: str,
+        context: str,
+        settings: Optional[ChatSettings] = None,
+    ) -> str:
+        """Ask the model to solve a single step."""
+        settings = settings or self.conversation.settings
+        sys_msg = (
+            "You are an expert problem solver. Provide a detailed answer "
+            "for the given step in the context of the overall task."
+        )
+        user_msg = f"Overall task: {context}\n\nCurrent step: {step}"
+        response = self.client.chat_completion(
+            messages=[
+                {"role": "system", "content": sys_msg},
+                {"role": "user", "content": user_msg},
+            ],
+            model=settings.model,
+            temperature=0.7,
+            max_tokens=600,
+        )
+        return response.choices[0].message.content.strip()
+
+    def _optimize_answer(
+        self,
+        compiled_answer: str,
+        settings: Optional[ChatSettings] = None,
+    ) -> str:
+        """Ask the model to optimize the compiled answer."""
+        settings = settings or self.conversation.settings
+        sys_msg = (
+            "You are an assistant that edits and optimizes answers for "
+            "clarity, conciseness, and completeness. Improve the following "
+            "answer while keeping all important details."
+        )
+        response = self.client.chat_completion(
+            messages=[
+                {"role": "system", "content": sys_msg},
+                {"role": "user", "content": compiled_answer},
+            ],
+            model=settings.model,
+            temperature=0.3,
+            max_tokens=800,
+        )
+        return response.choices[0].message.content.strip()
+
+    def chat_with_reasoning(
+        self,
+        user_message: str,
+        settings_override: Optional[ChatSettings] = None,
+    ) -> str:
+        """Enhanced chat that performs multi-step reasoning when helpful."""
+        settings = settings_override or self.conversation.settings
+
+        # Record the user message in the main conversation
+        self.add_user_message(user_message)
+
+        # Decide complexity
+        is_complex = self._is_complex_task(user_message, settings)
+
+        if not is_complex:
+            # Simple: fallback to normal flow
+            return self.get_ai_response(settings)
+
+        # Complex task – reasoning flow
+        description = self._describe_task(user_message, settings)
+        self.add_assistant_message(f"**Task summary:** {description}")
+
+        steps = self._plan_steps(description, settings)
+        self.add_assistant_message("**Proposed steps:**\n" + "\n".join(steps))
+
+        step_answers: List[str] = []
+        for idx, step in enumerate(steps, start=1):
+            answer = self._solve_step(step, description, settings)
+            step_answers.append(f"### Step {idx}: {step}\n{answer}")
+            # Optionally add each step answer as assistant message
+            self.add_assistant_message(step_answers[-1])
+
+        compiled_answer = "\n\n".join(step_answers)
+        optimized = self._optimize_answer(compiled_answer, settings)
+
+        # Final optimized answer recorded and returned
+        self.add_assistant_message(optimized)
+        return optimized

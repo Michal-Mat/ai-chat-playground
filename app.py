@@ -1,28 +1,27 @@
-import os
-
 import streamlit as st  # type: ignore
 from dotenv import load_dotenv
 
-from integrations.openai.client import create_openai_client
-from conversations.manager import ConversationManager
-from conversations.types import Role, ChatModel, Persona  # noqa: E305
+# Import the bootstrap to setup DI
+import core.bootstrap  # noqa: F401
+from core.container import get_service
+from conversations.types import Role, ChatModel, Persona
 
 # Load environment variables (e.g., OPENAI_API_KEY)
 load_dotenv()
 
 st.set_page_config(page_title="Open AI Chat", page_icon="🤖")
 
+
 # -----------------------------------------------------------------------------
-# Helper – get or create a ConversationManager tied to the user session
+# Helper – get or create a ConversationManager using DI
 # -----------------------------------------------------------------------------
 
 
-def _get_manager() -> ConversationManager:
+def _get_manager():
+    """Get ConversationManager from DI container."""
     if "manager" not in st.session_state:
-        api_key = os.getenv("OPENAI_API_KEY")
-        # Organisation can also be passed through env var if needed
-        client = create_openai_client(api_key=api_key)
-        st.session_state.manager = ConversationManager(client)
+        # Get a new instance from the container (factory pattern)
+        st.session_state.manager = get_service('conversation_manager')
     return st.session_state.manager
 
 
@@ -73,13 +72,24 @@ with st.sidebar:
         manager.update_settings(model=selected_model)
         st.rerun()
 
+    # Toggle – enable/disable reasoning feature
+    reasoning_enabled = st.checkbox(
+        "🧠 Enable multi-step reasoning",
+        value=manager.conversation.settings.reasoning,
+    )
+
+    if reasoning_enabled != manager.conversation.settings.reasoning:
+        manager.update_settings(reasoning=reasoning_enabled)
+        st.rerun()
+
     st.divider()
     if st.button("💾 Save conversation to MongoDB"):
         manager.save_to_repository()
         st.success("Conversation saved!")
 
     if st.button("🆕 New Conversation"):
-        manager = ConversationManager(manager.client)
+        # Get a new manager instance from DI container
+        manager = get_service('conversation_manager')
         st.session_state.manager = manager
         st.rerun()
 

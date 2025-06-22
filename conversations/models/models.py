@@ -102,6 +102,10 @@ class ChatSettings(BaseModel):
         default=None,
         description="Assistant persona to use",
     )
+    reasoning: bool = Field(
+        default=False,
+        description="Enable reasoning feature",
+    )
 
     @field_validator('model')
     def validate_model_name(cls, v):
