@@ -135,10 +135,33 @@ for message in manager.get_messages(include_system=True):
         tag = model_label
         if persona_label:
             tag += f" · {persona_label}"
-        content = f"*_{tag}_*\n\n{message.content}"
+        body = message.content
+        content = f"*_{tag}_*\n\n{body}"
+
+        # Detect reasoning helper messages by simple heuristics
+        reasoning_markers = (
+            "**Task summary:**",
+            "**Proposed steps:**",
+            "### Step",
+        )
+        is_reasoning = any(
+            body.lstrip().startswith(marker) for marker in reasoning_markers
+        )
+
+        if is_reasoning:
+            # Render in smaller gray font so it doesn't dominate the UI.
+            html_start = (
+                "<div style='font-size:0.85em; "
+                "color:gray;'>"
+            )
+            html_end = "</div>"
+            converted = content.replace("\n", "<br/>")  # noqa: E501
+            styled = html_start + converted + html_end
+            st.chat_message("assistant").markdown(styled, unsafe_allow_html=True)
+        else:
+            st.chat_message("assistant").markdown(content)
     else:
-        content = message.content
-    st.chat_message(chat_role).markdown(content)
+        st.chat_message("user").markdown(message.content)
 
 # Input box – appears at the bottom of the chat
 if prompt := st.chat_input("Type your message…"):
