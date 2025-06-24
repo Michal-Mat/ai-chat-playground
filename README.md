@@ -1,4 +1,4 @@
-# Hugging Chat Application
+# AI Chat Application
 
 A Streamlit-based chat application with OpenAI integration, conversation management, and persona-based system prompts.
 
