@@ -32,12 +32,41 @@ streamlit run app.py
 Access at: http://localhost:8501
 
 ### B. Start Infrastructure (Docker)
+
+#### Option 1: Services Only (for local development)
 ```bash
-# Start MongoDB and dependencies
+# Start MongoDB and Qdrant only
 docker compose -f docker/local.yml up -d
 
-# Check services
+# Check services are running
 docker compose -f docker/local.yml ps
+```
+
+#### Option 2: Full Application Stack
+```bash
+cd docker
+
+# Or use the docker folder version
+docker compose up -d
+
+# Check all services are running
+docker compose ps
+
+# View logs
+docker compose logs -f app
+```
+
+#### Option 3: Build and Run App Container Manually
+```bash
+# Build the Docker image
+docker/build.sh
+
+# Run with external services
+docker compose -f docker/local.yml up -d  # Start services first
+docker run -p 8501:8501 --env-file .env --network hugging_default hugging-chat:latest
+
+# Or run standalone (requires external MongoDB/Qdrant)
+docker run -p 8501:8501 --env-file .env hugging-chat:latest
 ```
 
 ### C. Run Tests

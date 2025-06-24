@@ -1,30 +1,9 @@
-huggingface==0.0.1
-transformers>=4.45.2
-evaluate>=0.4.4
-torch>=2.4.1
-torchvision>=0.19.1
-torchaudio>=2.4.1
-datasets>=2.14.1
-accelerate>=1.8.1
-peft>=0.10.0
-bitsandbytes>=0.44.1
-einops>=0.7.0
-safetensors>=0.4.1
-openai>=1.35.0
-python-dotenv>=1.0.0
-pydantic>=2
-qdrant-client>=1.8.2
-pymongo>=4.7.1
-streamlit>=1.35.0
-pdf2image>=1.17.0
-pytesseract>=0.3.10
-pdfplumber>=0.11.0
-sentence-transformers==4.1.0
-streamlit>=1.46.0
-dotenv>=0.9.9
+# Include production requirements
+-r requirements-prod.txt
+
+# Development dependencies
 pre_commit==4.2.0
 pytest>=8.3.5
 pytest-snapshot>=0.9.0
 pytest-xdist>=3.6.1
 ruff==0.12.0
--e .

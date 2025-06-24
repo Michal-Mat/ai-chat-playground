@@ -1,0 +1,54 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: hugging-chat-app
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    environment:
+      - MONGODB_URL=mongodb://mongo:27017/hugging_chat
+      - QDRANT_URL=http://qdrant:6333
+    env_file:
+      - ../.env
+    depends_on:
+      - mongo
+      - qdrant
+    networks:
+      - hugging-network
+
+  mongo:
+    image: mongo:6
+    container_name: hugging-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: hugging_chat
+    networks:
+      - hugging-network
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: hugging-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant-data:/qdrant/storage
+    networks:
+      - hugging-network
+
+volumes:
+  mongo-data:
+  qdrant-data:
+
+networks:
+  hugging-network:
+    driver: bridge
