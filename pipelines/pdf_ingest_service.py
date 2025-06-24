@@ -108,9 +108,7 @@ class PDFIngestService:
             token_count = 0
             while i < len(words) and token_count < chunk_size:
                 current_words.append(words[i])
-                token_ids = self.tokenizer(
-                    " ".join(current_words)
-                )[  # noqa: E501
+                token_ids = self.tokenizer(" ".join(current_words))[  # noqa: E501
                     "input_ids"
                 ]
                 token_count = len(token_ids)
