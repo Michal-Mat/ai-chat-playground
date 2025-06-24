@@ -21,7 +21,7 @@ def _get_manager():
     """Get ConversationManager from DI container."""
     if "manager" not in st.session_state:
         # Get a new instance from the container (factory pattern)
-        st.session_state.manager = get_service('conversation_manager')
+        st.session_state.manager = get_service("conversation_manager")
     return st.session_state.manager
 
 
@@ -59,7 +59,7 @@ with st.sidebar:
         ),
     )
 
-    if (selected_persona == "None"):
+    if selected_persona == "None":
         persona_obj = None
     else:
         persona_obj = Persona(selected_persona)
@@ -89,7 +89,7 @@ with st.sidebar:
 
     if st.button("🆕 New Conversation"):
         # Get a new manager instance from DI container
-        manager = get_service('conversation_manager')
+        manager = get_service("conversation_manager")
         st.session_state.manager = manager
         st.rerun()
 
@@ -121,9 +121,7 @@ for message in manager.get_messages(include_system=True):
     if message.role == Role.SYSTEM:
         st.chat_message(
             "assistant",
-        ).markdown(
-            f"🎯 _System prompt:_ {message.content}"
-        )
+        ).markdown(f"🎯 _System prompt:_ {message.content}")
         continue
     if chat_role == "assistant":
         model_label = getattr(
@@ -150,10 +148,7 @@ for message in manager.get_messages(include_system=True):
 
         if is_reasoning:
             # Render in smaller gray font so it doesn't dominate the UI.
-            html_start = (
-                "<div style='font-size:0.85em; "
-                "color:gray;'>"
-            )
+            html_start = "<div style='font-size:0.85em; " "color:gray;'>"
             html_end = "</div>"
             converted = content.replace("\n", "<br/>")  # noqa: E501
             styled = html_start + converted + html_end
@@ -182,9 +177,7 @@ if prompt := st.chat_input("Type your message…"):
             tag_resp = model_label_resp
             if persona_resp:
                 tag_resp += f" · {persona_resp}"
-            st.chat_message("assistant").markdown(
-                f"*_{tag_resp}_*\n\n{answer}"
-            )
+            st.chat_message("assistant").markdown(f"*_{tag_resp}_*\n\n{answer}")
         except Exception as exc:
             error_text = (
                 f"⚠️ **Error calling OpenAI:** {exc}\n\n"

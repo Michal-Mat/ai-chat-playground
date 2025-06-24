@@ -20,8 +20,9 @@ try:
         create_persona_manager,
         Message,
         Conversation,
-        ChatSettings
+        ChatSettings,
     )
+
     _conversations_available = True
 except ImportError:
     _conversations_available = False
@@ -34,11 +35,13 @@ __all__ = [
 
 # Add conversations to __all__ if available
 if _conversations_available:
-    __all__.extend([
-        "ConversationManager",
-        "create_conversation_manager",
-        "create_persona_manager",
-        "Message",
-        "Conversation",
-        "ChatSettings"
-    ])
+    __all__.extend(
+        [
+            "ConversationManager",
+            "create_conversation_manager",
+            "create_persona_manager",
+            "Message",
+            "Conversation",
+            "ChatSettings",
+        ]
+    )

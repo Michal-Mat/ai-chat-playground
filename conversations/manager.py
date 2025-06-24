@@ -10,7 +10,12 @@ from typing import Optional, List
 from datetime import datetime
 import uuid
 
-from conversations.models import Message, Conversation, ChatSettings, ConversationMetadata
+from conversations.models import (
+    Message,
+    Conversation,
+    ChatSettings,
+    ConversationMetadata,
+)
 from conversations.types import Role
 from persistence.mongo_repository import ConversationRepository
 
@@ -33,7 +38,7 @@ class ConversationManager:
         conversation_id: Optional[str] = None,
         title: Optional[str] = None,
         settings: Optional[ChatSettings] = None,
-        repository: Optional[ConversationRepository] = None
+        repository: Optional[ConversationRepository] = None,
     ):
         """
         Initialize a conversation manager.
@@ -57,7 +62,7 @@ class ConversationManager:
             id=conversation_id or str(uuid.uuid4()),
             title=title,
             created_at=datetime.now(),
-            updated_at=datetime.now()
+            updated_at=datetime.now(),
         )
 
         # Create chat settings
@@ -65,10 +70,7 @@ class ConversationManager:
             settings = ChatSettings(model=model)
 
         # Initialize conversation
-        self.conversation = Conversation(
-            metadata=metadata,
-            settings=settings
-        )
+        self.conversation = Conversation(metadata=metadata, settings=settings)
 
         # Add system message if provided
         if system_message:
@@ -96,8 +98,7 @@ class ConversationManager:
         )
 
     async def get_ai_response_async(
-        self,
-        settings_override: Optional[ChatSettings] = None
+        self, settings_override: Optional[ChatSettings] = None
     ) -> str:
         """
         Get AI response asynchronously using current conversation state.
@@ -118,13 +119,15 @@ class ConversationManager:
                 max_tokens=settings.max_tokens,
                 top_p=settings.top_p,
                 frequency_penalty=settings.frequency_penalty,
-                presence_penalty=settings.presence_penalty
+                presence_penalty=settings.presence_penalty,
             )
 
             ai_content = response.choices[0].message.content
             self.add_assistant_message(ai_content)
 
-            logger.info(f"AI response received for conversation {self.conversation.metadata.id}")
+            logger.info(
+                f"AI response received for conversation {self.conversation.metadata.id}"
+            )
             return ai_content
 
         except Exception as e:
@@ -132,10 +135,7 @@ class ConversationManager:
             logger.error(error_msg)
             raise
 
-    def get_ai_response(
-        self,
-        settings_override: Optional[ChatSettings] = None
-    ) -> str:
+    def get_ai_response(self, settings_override: Optional[ChatSettings] = None) -> str:
         """
         Get AI response synchronously using current conversation state.
 
@@ -155,13 +155,15 @@ class ConversationManager:
                 max_tokens=settings.max_tokens,
                 top_p=settings.top_p,
                 frequency_penalty=settings.frequency_penalty,
-                presence_penalty=settings.presence_penalty
+                presence_penalty=settings.presence_penalty,
             )
 
             ai_content = response.choices[0].message.content
             self.add_assistant_message(ai_content)
 
-            logger.info(f"AI response received for conversation {self.conversation.metadata.id}")
+            logger.info(
+                f"AI response received for conversation {self.conversation.metadata.id}"
+            )
             return ai_content
 
         except Exception as e:
@@ -170,9 +172,7 @@ class ConversationManager:
             raise
 
     def chat(
-        self,
-        user_message: str,
-        settings_override: Optional[ChatSettings] = None
+        self, user_message: str, settings_override: Optional[ChatSettings] = None
     ) -> str:
         """Send a user message and get an AI response.
 
@@ -193,9 +193,7 @@ class ConversationManager:
         return self.get_ai_response(settings_override)
 
     async def chat_async(
-        self,
-        user_message: str,
-        settings_override: Optional[ChatSettings] = None
+        self, user_message: str, settings_override: Optional[ChatSettings] = None
     ) -> str:
         """
         Send a user message and get AI response asynchronously.
@@ -227,7 +225,9 @@ class ConversationManager:
         self.conversation.settings = new_settings
         self.conversation.metadata.updated_at = datetime.now()
 
-        logger.info(f"Settings updated for conversation {self.conversation.metadata.id}")
+        logger.info(
+            f"Settings updated for conversation {self.conversation.metadata.id}"
+        )
         return new_settings
 
     def get_messages(self, include_system: bool = True) -> List[Message]:
@@ -240,8 +240,12 @@ class ConversationManager:
 
     def show_conversation(self) -> None:
         """Display the full conversation history in a formatted way."""
-        print(f"📜 Conversation: {self.conversation.metadata.title or self.conversation.metadata.id}")
-        print(f"🕒 Created: {self.conversation.metadata.created_at.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(
+            f"📜 Conversation: {self.conversation.metadata.title or self.conversation.metadata.id}"
+        )
+        print(
+            f"🕒 Created: {self.conversation.metadata.created_at.strftime('%Y-%m-%d %H:%M:%S')}"
+        )
         print(f"📊 Messages: {self.conversation.metadata.message_count}")
         print(f"🤖 Model: {self.conversation.settings.model}")
         print("=" * 60)
@@ -255,8 +259,8 @@ class ConversationManager:
                 print(f"🤖 AI: {message.content}")
 
             # Show timestamp for debugging if needed
-            if hasattr(message, 'timestamp') and message.timestamp:
-                timestamp_str = message.timestamp.strftime('%H:%M:%S')
+            if hasattr(message, "timestamp") and message.timestamp:
+                timestamp_str = message.timestamp.strftime("%H:%M:%S")
                 print(f"   ⏰ {timestamp_str}")
             print()
 
@@ -284,8 +288,10 @@ class ConversationManager:
         if filepath is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
             title_part = self.conversation.metadata.title or "conversation"
-            title_part = "".join(c for c in title_part if c.isalnum() or c in (' ', '-', '_')).strip()
-            title_part = title_part.replace(' ', '_').lower()
+            title_part = "".join(
+                c for c in title_part if c.isalnum() or c in (" ", "-", "_")
+            ).strip()
+            title_part = title_part.replace(" ", "_").lower()
             filepath = f"{title_part}_{timestamp}.json"
 
         json_str = self.conversation.export_to_json(filepath)
@@ -297,7 +303,9 @@ class ConversationManager:
         """Set conversation title."""
         self.conversation.metadata.title = title
         self.conversation.metadata.updated_at = datetime.now()
-        logger.info(f"Title set for conversation {self.conversation.metadata.id}: {title}")
+        logger.info(
+            f"Title set for conversation {self.conversation.metadata.id}: {title}"
+        )
 
     def add_tags(self, *tags: str) -> None:
         """Add tags to conversation."""
@@ -306,7 +314,9 @@ class ConversationManager:
                 self.conversation.metadata.tags.append(tag)
 
         self.conversation.metadata.updated_at = datetime.now()
-        logger.info(f"Tags added to conversation {self.conversation.metadata.id}: {tags}")
+        logger.info(
+            f"Tags added to conversation {self.conversation.metadata.id}: {tags}"
+        )
 
     def get_conversation_data(self) -> Conversation:
         """Get the underlying Conversation model."""
@@ -314,10 +324,8 @@ class ConversationManager:
 
     @classmethod
     def from_conversation(
-        cls,
-        client,
-        conversation: Conversation
-    ) -> 'ConversationManager':
+        cls, client, conversation: Conversation
+    ) -> "ConversationManager":
         """
         Create ConversationManager from existing Conversation model.
 
@@ -331,15 +339,13 @@ class ConversationManager:
         manager = cls.__new__(cls)
         manager.client = client
         manager.conversation = conversation
-        logger.info(f"ConversationManager loaded from conversation: {conversation.metadata.id}")
+        logger.info(
+            f"ConversationManager loaded from conversation: {conversation.metadata.id}"
+        )
         return manager
 
     @classmethod
-    def from_json_file(
-        cls,
-        client,
-        filepath: str
-    ) -> 'ConversationManager':
+    def from_json_file(cls, client, filepath: str) -> "ConversationManager":
         """
         Load ConversationManager from JSON file.
 
@@ -363,13 +369,15 @@ class ConversationManager:
         cls,
         client,
         conversation_id: str,
-        repository: Optional[ConversationRepository] = None
-    ) -> 'ConversationManager':
+        repository: Optional[ConversationRepository] = None,
+    ) -> "ConversationManager":
         """Retrieve a conversation by ID from the repository and return a manager instance."""
         repo = repository or ConversationRepository()
         conversation = repo.get(conversation_id)
         if conversation is None:
-            raise ValueError(f"Conversation with id {conversation_id} not found in repository")
+            raise ValueError(
+                f"Conversation with id {conversation_id} not found in repository"
+            )
         manager = cls.from_conversation(client, conversation)
         manager.repository = repo  # type: ignore[attr-defined]
         return manager

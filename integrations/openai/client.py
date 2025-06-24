@@ -19,7 +19,9 @@ class OpenAIClient:
     A client wrapper for OpenAI API that handles authentication and common operations.
     """
 
-    def __init__(self, api_key: Optional[str] = None, organization: Optional[str] = None):
+    def __init__(
+        self, api_key: Optional[str] = None, organization: Optional[str] = None
+    ):
         """
         Initialize the OpenAI client.
 
@@ -52,7 +54,7 @@ class OpenAIClient:
         model: str = "gpt-3.5-turbo",
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> ChatCompletion:
         """
         Create a chat completion using OpenAI's chat models.
@@ -73,7 +75,7 @@ class OpenAIClient:
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                **kwargs
+                **kwargs,
             )
             logger.info(f"Chat completion created with model: {model}")
             return response
@@ -87,7 +89,7 @@ class OpenAIClient:
         model: str = "gpt-3.5-turbo",
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> ChatCompletion:
         """
         Async version of chat completion.
@@ -98,7 +100,7 @@ class OpenAIClient:
                 messages=messages,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                **kwargs
+                **kwargs,
             )
             logger.info(f"Async chat completion created with model: {model}")
             return response
@@ -112,7 +114,7 @@ class OpenAIClient:
         model: str = "gpt-3.5-turbo-instruct",
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> Completion:
         """
         Create a text completion using OpenAI's completion models.
@@ -133,7 +135,7 @@ class OpenAIClient:
                 prompt=prompt,
                 temperature=temperature,
                 max_tokens=max_tokens,
-                **kwargs
+                **kwargs,
             )
             logger.info(f"Text completion created with model: {model}")
             return response
@@ -145,7 +147,7 @@ class OpenAIClient:
         self,
         text: Union[str, List[str]],
         model: str = "text-embedding-3-small",
-        **kwargs
+        **kwargs,
     ) -> CreateEmbeddingResponse:
         """
         Create embeddings for text using OpenAI's embedding models.
@@ -159,11 +161,7 @@ class OpenAIClient:
             CreateEmbeddingResponse object
         """
         try:
-            response = self.client.embeddings.create(
-                model=model,
-                input=text,
-                **kwargs
-            )
+            response = self.client.embeddings.create(model=model, input=text, **kwargs)
             logger.info(f"Embeddings created with model: {model}")
             return response
         except Exception as e:
@@ -201,7 +199,9 @@ class OpenAIClient:
         response = self.chat_completion(messages, model=model)
         return response.choices[0].message.content
 
-    def simple_complete(self, prompt: str, model: str = "gpt-3.5-turbo-instruct") -> str:
+    def simple_complete(
+        self, prompt: str, model: str = "gpt-3.5-turbo-instruct"
+    ) -> str:
         """
         Simple completion interface for quick text completion.
 
@@ -215,7 +215,9 @@ class OpenAIClient:
         response = self.completion(prompt, model=model)
         return response.choices[0].text
 
-    def get_embedding_vector(self, text: str, model: str = "text-embedding-3-small") -> List[float]:
+    def get_embedding_vector(
+        self, text: str, model: str = "text-embedding-3-small"
+    ) -> List[float]:
         """
         Get embedding vector for a single text.
 
@@ -231,7 +233,9 @@ class OpenAIClient:
 
 
 # Convenience function to create a client instance
-def create_openai_client(api_key: Optional[str] = None, organization: Optional[str] = None) -> OpenAIClient:
+def create_openai_client(
+    api_key: Optional[str] = None, organization: Optional[str] = None
+) -> OpenAIClient:
     """
     Create an OpenAI client instance.
 

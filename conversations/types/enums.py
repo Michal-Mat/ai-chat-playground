@@ -13,6 +13,7 @@ class Role(str, Enum):
 
 # noqa: D101
 
+
 class Persona(str, Enum):
     """Enumeration of predefined chat personas."""
 

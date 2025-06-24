@@ -50,13 +50,8 @@ class ConversationRepository:
 
     def list(self, limit: int = 50) -> List[Conversation]:
         """Return a subset of recent conversations (newest first)."""
-        cursor = self._collection.find().sort(
-            "metadata.updated_at", -1
-        ).limit(limit)
-        return [
-            Conversation.from_dict(doc)  # type: ignore[arg-type]
-            for doc in cursor
-        ]
+        cursor = self._collection.find().sort("metadata.updated_at", -1).limit(limit)
+        return [Conversation.from_dict(doc) for doc in cursor]  # type: ignore[arg-type]
 
     def delete(self, conversation_id: str) -> bool:
         """Delete a conversation; return True if one was removed."""

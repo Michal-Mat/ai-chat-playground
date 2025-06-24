@@ -1,1 +1,3 @@
-from ..utils import create_persona_manager, create_conversation_manager
+from .personas import PERSONAS
+
+__all__ = ["PERSONAS"]

@@ -1,11 +1,11 @@
 huggingface==0.0.1
 transformers>=4.45.2
-evaluate>=0.4.3
+evaluate>=0.4.4
 torch>=2.4.1
 torchvision>=0.19.1
 torchaudio>=2.4.1
 datasets>=2.14.1
-accelerate>=0.24.1
+accelerate>=1.8.1
 peft>=0.10.0
 bitsandbytes>=0.44.1
 einops>=0.7.0
@@ -19,7 +19,7 @@ streamlit>=1.35.0
 pdf2image>=1.17.0
 pytesseract>=0.3.10
 pdfplumber>=0.11.0
-sentence-transformers>=2.2.0
+sentence-transformers==4.1.0
 streamlit>=1.46.0
 dotenv>=0.9.9
 -e .

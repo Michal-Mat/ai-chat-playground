@@ -7,12 +7,13 @@ using Pydantic models for type safety and validation.
 
 from .models import Message, Conversation, ChatSettings
 from .manager import ConversationManager
-from .utils import create_conversation_manager
+from .utils import create_conversation_manager, create_persona_manager
 
 __all__ = [
     "Message",
     "Conversation",
     "ChatSettings",
     "ConversationManager",
-    "create_conversation_manager"
+    "create_conversation_manager",
+    "create_persona_manager",
 ]

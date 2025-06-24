@@ -12,12 +12,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 @dataclass
 class ServiceConfig:
     """Configuration for a service registration."""
+
     factory: Callable[[], Any]
     singleton: bool = True
     initialized: bool = field(default=False, init=False)
@@ -41,34 +42,26 @@ class ServiceContainer:
         """Load configuration from environment variables."""
         self._config = {
             # OpenAI Configuration
-            'openai_api_key': os.getenv('OPENAI_API_KEY'),
-            'openai_org_id': os.getenv('OPENAI_ORG_ID'),
-
+            "openai_api_key": os.getenv("OPENAI_API_KEY"),
+            "openai_org_id": os.getenv("OPENAI_ORG_ID"),
             # MongoDB Configuration
-            'mongo_uri': os.getenv(
-                'MONGO_URI', 'mongodb://localhost:27017'
+            "mongo_uri": os.getenv("MONGO_URI", "mongodb://localhost:27017"),
+            "mongo_db_name": os.getenv("MONGO_DB_NAME", "hugging_chat"),
+            "mongo_collection_name": os.getenv(
+                "MONGO_COLLECTION_NAME", "conversations"
             ),
-            'mongo_db_name': os.getenv('MONGO_DB_NAME', 'hugging_chat'),
-            'mongo_collection_name': os.getenv(
-                'MONGO_COLLECTION_NAME', 'conversations'
-            ),
-
             # Qdrant Configuration
-            'qdrant_host': os.getenv('QDRANT_HOST', 'localhost'),
-            'qdrant_port': int(os.getenv('QDRANT_PORT', '6333')),
-            'qdrant_collection': os.getenv(
-                'QDRANT_COLLECTION', 'conversation_embeddings'
+            "qdrant_host": os.getenv("QDRANT_HOST", "localhost"),
+            "qdrant_port": int(os.getenv("QDRANT_PORT", "6333")),
+            "qdrant_collection": os.getenv(
+                "QDRANT_COLLECTION", "conversation_embeddings"
             ),
-            'qdrant_vector_dim': int(os.getenv('QDRANT_VECTOR_DIM', '1536')),
-
+            "qdrant_vector_dim": int(os.getenv("QDRANT_VECTOR_DIM", "1536")),
             # AI Model Configuration
-            'embedding_model': os.getenv(
-                'EMBEDDING_MODEL',
-                'sentence-transformers/all-MiniLM-L6-v2'
+            "embedding_model": os.getenv(
+                "EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"
             ),
-            'default_chat_model': os.getenv(
-                'DEFAULT_CHAT_MODEL', 'gpt-3.5-turbo'
-            ),
+            "default_chat_model": os.getenv("DEFAULT_CHAT_MODEL", "gpt-3.5-turbo"),
         }
 
     def register_singleton(self, name: str, factory: Callable[[], T]) -> None:

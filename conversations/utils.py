@@ -20,7 +20,7 @@ def create_conversation_manager(
     title: Optional[str] = None,
     temperature: float = 0.7,
     max_tokens: Optional[int] = None,
-    **kwargs
+    **kwargs,
 ) -> ConversationManager:
     """
     Convenience function to create a ConversationManager with common settings.
@@ -38,25 +38,16 @@ def create_conversation_manager(
         ConversationManager instance
     """
     settings = ChatSettings(
-        model=model,
-        temperature=temperature,
-        max_tokens=max_tokens,
-        **kwargs
+        model=model, temperature=temperature, max_tokens=max_tokens, **kwargs
     )
 
     return ConversationManager(
-        client=client,
-        system_message=system_message,
-        title=title,
-        settings=settings
+        client=client, system_message=system_message, title=title, settings=settings
     )
 
 
 def create_persona_manager(
-    client,
-    persona: Union[str, Persona],
-    model: str = "gpt-3.5-turbo",
-    **kwargs
+    client, persona: Union[str, Persona], model: str = "gpt-3.5-turbo", **kwargs
 ) -> ConversationManager:
     """
     Create a ConversationManager with predefined persona.
@@ -84,9 +75,7 @@ def create_persona_manager(
 
     if persona not in personas:
         available = ", ".join(p.value for p in personas.keys())
-        raise ValueError(
-            f"Unknown persona '{persona}'. Available: {available}"
-        )
+        raise ValueError(f"Unknown persona '{persona}'. Available: {available}")
 
     persona_config = personas[persona]
 
@@ -95,5 +84,5 @@ def create_persona_manager(
         model=model,
         system_message=persona_config["system_message"],
         title=persona_config["title"],
-        **kwargs
+        **kwargs,
     )
