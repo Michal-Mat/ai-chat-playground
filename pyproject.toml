@@ -19,29 +19,19 @@ classifiers = [
 
 [tool.setuptools_scm]
 
-[tool.black]
-line-length = 79
-target-version = ['py310']
-include = '\.pyi?$'
-extend-exclude = '''
-/(
-  # directories
-  \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
-
 [tool.ruff]
 target-version = "py310"
 line-length = 79
+
+[tool.ruff.format]
+# Use single quotes instead of double quotes
+quote-style = "double"
+# Use spaces instead of tabs
+indent-style = "space"
+# Respect magic trailing comma
+skip-magic-trailing-comma = false
+# Automatically detect line endings
+line-ending = "auto"
 
 [tool.ruff.lint]
 select = [

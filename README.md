@@ -65,9 +65,8 @@ pre-commit install
 pre-commit run --all-files
 
 # Manual tools
-black .                    # Format code
 ruff check . --fix         # Lint and auto-fix
-ruff format .              # Format with ruff
+ruff format .              # Format code
 ```
 
 ## Module Structure
