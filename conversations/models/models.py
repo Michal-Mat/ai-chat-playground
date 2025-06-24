@@ -32,6 +32,9 @@ class Message(BaseModel):
     timestamp: Optional[datetime] = Field(
         default_factory=datetime.now, description="When the message was created"
     )
+    token_count: Optional[int] = Field(
+        default=None, ge=0, description="Number of tokens in this message"
+    )
 
     @field_validator("content")
     def content_must_not_be_empty(cls, v):
@@ -103,6 +106,7 @@ class ConversationMetadata(BaseModel):
         description="When the conversation was last updated",
     )
     message_count: int = Field(default=0, ge=0, description="Total number of messages")
+    total_tokens: int = Field(default=0, ge=0, description="Total tokens used")
     tags: List[str] = Field(
         default_factory=list, description="Optional tags for categorization"
     )
@@ -125,6 +129,7 @@ class Conversation(BaseModel):
         content: str,
         model: Optional[str] = None,
         persona: Optional[Persona] = None,
+        token_count: Optional[int] = None,
     ) -> Message:
         """Add a message to the conversation."""
         message = Message(
@@ -132,9 +137,12 @@ class Conversation(BaseModel):
             content=content,
             model=model,
             persona=persona,
+            token_count=token_count,
         )
         self.messages.append(message)
         self.metadata.message_count = len(self.messages)
+        if token_count:
+            self.metadata.total_tokens += token_count
         self.metadata.updated_at = datetime.now()
         return message
 

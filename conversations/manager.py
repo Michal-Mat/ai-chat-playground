@@ -86,7 +86,9 @@ class ConversationManager:
         """Add a user message to the conversation."""
         return self.conversation.add_message(Role.USER, content)
 
-    def add_assistant_message(self, content: str) -> Message:
+    def add_assistant_message(
+        self, content: str, token_count: Optional[int] = None
+    ) -> Message:
         """Add an assistant message and record the model used."""
         model_name = self.conversation.settings.model
         persona_val = self.conversation.settings.persona
@@ -95,6 +97,7 @@ class ConversationManager:
             content,
             model=model_name,
             persona=persona_val,
+            token_count=token_count,
         )
 
     async def get_ai_response_async(
@@ -159,7 +162,16 @@ class ConversationManager:
             )
 
             ai_content = response.choices[0].message.content
-            self.add_assistant_message(ai_content)
+            # Extract token count from response
+            token_count = (
+                getattr(response.usage, "completion_tokens", None)
+                if hasattr(response, "usage")
+                else None
+            )
+            self.add_assistant_message(ai_content, token_count)
+
+            # Auto-save if conversation has content
+            self._auto_save()
 
             logger.info(
                 f"AI response received for conversation {self.conversation.metadata.id}"
@@ -363,6 +375,26 @@ class ConversationManager:
         """Persist the current conversation state to the configured repository."""
         self.repository.save(self.conversation)
         logger.info(f"Conversation {self.conversation.metadata.id} saved to repository")
+
+    def _auto_save(self) -> None:
+        """Auto-save conversation if it has content (not empty)."""
+        # Only save if conversation has user/assistant messages (not just system)
+        non_system_messages = [
+            msg for msg in self.conversation.messages if msg.role != Role.SYSTEM
+        ]
+        if non_system_messages:
+            self.save_to_repository()
+        else:
+            logger.debug(
+                f"Skipping auto-save for empty conversation {self.conversation.metadata.id}"
+            )
+
+    def is_empty(self) -> bool:
+        """Check if conversation is empty (no user/assistant messages)."""
+        return (
+            len([msg for msg in self.conversation.messages if msg.role != Role.SYSTEM])
+            == 0
+        )
 
     @classmethod
     def load_from_repository(
