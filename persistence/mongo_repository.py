@@ -57,3 +57,40 @@ class ConversationRepository:
         """Delete a conversation; return True if one was removed."""
         result = self._collection.delete_one({"metadata.id": conversation_id})
         return result.deleted_count == 1
+
+    def get_statistics(self) -> dict:
+        """Get aggregate statistics from all conversations."""
+        try:
+            pipeline = [
+                {
+                    "$group": {
+                        "_id": None,
+                        "total_conversations": {"$sum": 1},
+                        "total_messages": {"$sum": "$metadata.message_count"},
+                        "total_tokens": {"$sum": "$metadata.total_tokens"},
+                    }
+                }
+            ]
+
+            result = list(self._collection.aggregate(pipeline))
+
+            if result:
+                stats = result[0]
+                return {
+                    "total_conversations": stats.get("total_conversations", 0),
+                    "total_messages": stats.get("total_messages", 0),
+                    "total_tokens": stats.get("total_tokens", 0),
+                }
+            else:
+                return {
+                    "total_conversations": 0,
+                    "total_messages": 0,
+                    "total_tokens": 0,
+                }
+        except Exception:
+            # Return zeros if there's any error (e.g., empty collection)
+            return {
+                "total_conversations": 0,
+                "total_messages": 0,
+                "total_tokens": 0,
+            }

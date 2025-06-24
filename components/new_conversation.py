@@ -1,7 +1,7 @@
 """
 New Conversation Component.
 
-Handles creating new conversations.
+Handles creating new conversations and displays usage statistics.
 """
 
 import streamlit as st
@@ -12,12 +12,12 @@ if TYPE_CHECKING:
 
 
 class NewConversationComponent:
-    """Component for creating new conversations."""
+    """Component for creating new conversations and showing statistics."""
 
     @staticmethod
     def render(manager_class, client, repository) -> None:
         """
-        Render the new conversation button.
+        Render the new conversation button and usage statistics.
 
         Args:
             manager_class: The ConversationManager class
@@ -34,3 +34,51 @@ class NewConversationComponent:
             )
             st.session_state.manager = new_manager
             st.rerun()
+
+        # Display usage statistics
+        NewConversationComponent._render_statistics(repository)
+
+    @staticmethod
+    def _render_statistics(repository) -> None:
+        """
+        Render usage statistics from MongoDB.
+
+        Args:
+            repository: The conversation repository
+        """
+        st.subheader("📊 Usage Statistics")
+
+        try:
+            stats = repository.get_statistics()
+
+            # Create three columns for the statistics
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+                st.metric(
+                    label="💬 Conversations",
+                    value=f"{stats['total_conversations']:,}"
+                )
+
+            with col2:
+                st.metric(
+                    label="📨 Messages",
+                    value=f"{stats['total_messages']:,}"
+                )
+
+            with col3:
+                st.metric(
+                    label="🪙 Tokens",
+                    value=f"{stats['total_tokens']:,}"
+                )
+
+        except Exception as e:
+            st.error(f"Error loading statistics: {e}")
+            # Show zero stats as fallback
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric(label="💬 Conversations", value="0")
+            with col2:
+                st.metric(label="📨 Messages", value="0")
+            with col3:
+                st.metric(label="🪙 Tokens", value="0")

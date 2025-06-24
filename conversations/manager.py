@@ -6,7 +6,7 @@ with OpenAI models while maintaining conversation history and state.
 """
 
 import logging
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from datetime import datetime
 import uuid
 
@@ -17,7 +17,9 @@ from conversations.models import (
     ConversationMetadata,
 )
 from conversations.types import Role
-from persistence.mongo_repository import ConversationRepository
+
+if TYPE_CHECKING:
+    from persistence.mongo_repository import ConversationRepository
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +40,7 @@ class ConversationManager:
         conversation_id: Optional[str] = None,
         title: Optional[str] = None,
         settings: Optional[ChatSettings] = None,
-        repository: Optional[ConversationRepository] = None,
+        repository: Optional["ConversationRepository"] = None,
     ):
         """
         Initialize a conversation manager.
@@ -55,7 +57,10 @@ class ConversationManager:
         self.client = client
 
         # Store repository (defaults to a new Mongo-backed repository)
-        self.repository: ConversationRepository = repository or ConversationRepository()
+        if repository is None:
+            from persistence.mongo_repository import ConversationRepository
+            repository = ConversationRepository()
+        self.repository = repository
 
         # Create conversation metadata
         metadata = ConversationMetadata(
@@ -410,10 +415,13 @@ class ConversationManager:
         cls,
         client,
         conversation_id: str,
-        repository: Optional[ConversationRepository] = None,
+        repository: Optional["ConversationRepository"] = None,
     ) -> "ConversationManager":
         """Retrieve a conversation by ID from the repository and return a manager instance."""
-        repo = repository or ConversationRepository()
+        if repository is None:
+            from persistence.mongo_repository import ConversationRepository
+            repository = ConversationRepository()
+        repo = repository
         conversation = repo.get(conversation_id)
         if conversation is None:
             raise ValueError(
