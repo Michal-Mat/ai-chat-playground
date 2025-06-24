@@ -15,12 +15,12 @@ from .openai import OpenAIClient, create_openai_client
 # Import conversations at package level for convenience
 try:
     from conversations import (
+        ChatSettings,
+        Conversation,
         ConversationManager,
+        Message,
         create_conversation_manager,
         create_persona_manager,
-        Message,
-        Conversation,
-        ChatSettings,
     )
 
     _conversations_available = True

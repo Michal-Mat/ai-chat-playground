@@ -1,6 +1,5 @@
 from conversations.types.enums import Persona
 
-
 PERSONAS: dict = {
     Persona.CREATIVE: {
         "system_message": (

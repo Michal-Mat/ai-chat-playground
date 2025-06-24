@@ -1,8 +1,6 @@
 """MongoDB-based repository for conversations."""
 
-from typing import Optional, List
-
-from pymongo import MongoClient, ASCENDING
+from pymongo import ASCENDING, MongoClient
 from pymongo.collection import Collection
 
 from conversations.models import Conversation
@@ -41,16 +39,20 @@ class ConversationRepository:
             upsert=True,
         )
 
-    def get(self, conversation_id: str) -> Optional[Conversation]:
+    def get(self, conversation_id: str) -> Conversation | None:
         """Retrieve a conversation by its identifier."""
         doc = self._collection.find_one({"metadata.id": conversation_id})
         if doc is None:
             return None
         return Conversation.from_dict(doc)  # type: ignore[arg-type]
 
-    def list(self, limit: int = 50) -> List[Conversation]:
+    def list(self, limit: int = 50) -> list[Conversation]:
         """Return a subset of recent conversations (newest first)."""
-        cursor = self._collection.find().sort("metadata.updated_at", -1).limit(limit)
+        cursor = (
+            self._collection.find()
+            .sort("metadata.updated_at", -1)
+            .limit(limit)
+        )
         return [Conversation.from_dict(doc) for doc in cursor]  # type: ignore[arg-type]
 
     def delete(self, conversation_id: str) -> bool:

@@ -5,11 +5,13 @@ These models provide type safety, validation, and serialization
 for chat messages and conversation data.
 """
 
-from datetime import datetime
-from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field, field_validator
 import json
-from conversations.types import Role, Persona
+from datetime import datetime
+from typing import Any
+
+from pydantic import BaseModel, Field, field_validator
+
+from conversations.types import Persona, Role
 
 
 class Message(BaseModel):
@@ -21,18 +23,19 @@ class Message(BaseModel):
 
     role: Role = Field(..., description="The role of the message sender")
     content: str = Field(..., min_length=1, description="The message content")
-    model: Optional[str] = Field(
+    model: str | None = Field(
         default=None,
-        description=("Model that generated the message " "(assistant only)"),
+        description=("Model that generated the message (assistant only)"),
     )
-    persona: Optional[Persona] = Field(
+    persona: Persona | None = Field(
         default=None,
         description="Persona used for the assistant reply",
     )
-    timestamp: Optional[datetime] = Field(
-        default_factory=datetime.now, description="When the message was created"
+    timestamp: datetime | None = Field(
+        default_factory=datetime.now,
+        description="When the message was created",
     )
-    token_count: Optional[int] = Field(
+    token_count: int | None = Field(
         default=None, ge=0, description="Number of tokens in this message"
     )
 
@@ -40,10 +43,12 @@ class Message(BaseModel):
     def content_must_not_be_empty(cls, v):
         """Ensure content is not just whitespace."""
         if not v or not v.strip():
-            raise ValueError("Message content cannot be empty or just whitespace")
+            raise ValueError(
+                "Message content cannot be empty or just whitespace"
+            )
         return v.strip()
 
-    def to_openai_format(self) -> Dict[str, str]:
+    def to_openai_format(self) -> dict[str, str]:
         """Convert to OpenAI API format."""
         return {"role": self.role.value, "content": self.content}
 
@@ -56,23 +61,34 @@ class ChatSettings(BaseModel):
     Configuration settings for chat completion requests.
     """
 
-    model: str = Field(default="gpt-3.5-turbo", description="The OpenAI model to use")
-    temperature: float = Field(
-        default=0.7, ge=0.0, le=2.0, description="Sampling temperature (0.0-2.0)"
+    model: str = Field(
+        default="gpt-3.5-turbo", description="The OpenAI model to use"
     )
-    max_tokens: Optional[int] = Field(
+    temperature: float = Field(
+        default=0.7,
+        ge=0.0,
+        le=2.0,
+        description="Sampling temperature (0.0-2.0)",
+    )
+    max_tokens: int | None = Field(
         default=None, gt=0, le=4096, description="Maximum tokens in response"
     )
-    top_p: Optional[float] = Field(
+    top_p: float | None = Field(
         default=None, ge=0.0, le=1.0, description="Nucleus sampling parameter"
     )
-    frequency_penalty: Optional[float] = Field(
-        default=None, ge=-2.0, le=2.0, description="Frequency penalty (-2.0 to 2.0)"
+    frequency_penalty: float | None = Field(
+        default=None,
+        ge=-2.0,
+        le=2.0,
+        description="Frequency penalty (-2.0 to 2.0)",
     )
-    presence_penalty: Optional[float] = Field(
-        default=None, ge=-2.0, le=2.0, description="Presence penalty (-2.0 to 2.0)"
+    presence_penalty: float | None = Field(
+        default=None,
+        ge=-2.0,
+        le=2.0,
+        description="Presence penalty (-2.0 to 2.0)",
     )
-    persona: Optional[Persona] = Field(
+    persona: Persona | None = Field(
         default=None,
         description="Assistant persona to use",
     )
@@ -95,19 +111,22 @@ class ConversationMetadata(BaseModel):
     """
 
     id: str = Field(..., description="Unique conversation identifier")
-    title: Optional[str] = Field(
+    title: str | None = Field(
         default=None, description="Optional conversation title"
     )
     created_at: datetime = Field(
-        default_factory=datetime.now, description="When the conversation was created"
+        default_factory=datetime.now,
+        description="When the conversation was created",
     )
     updated_at: datetime = Field(
         default_factory=datetime.now,
         description="When the conversation was last updated",
     )
-    message_count: int = Field(default=0, ge=0, description="Total number of messages")
+    message_count: int = Field(
+        default=0, ge=0, description="Total number of messages"
+    )
     total_tokens: int = Field(default=0, ge=0, description="Total tokens used")
-    tags: List[str] = Field(
+    tags: list[str] = Field(
         default_factory=list, description="Optional tags for categorization"
     )
 
@@ -119,7 +138,7 @@ class Conversation(BaseModel):
 
     metadata: ConversationMetadata
     settings: ChatSettings
-    messages: List[Message] = Field(
+    messages: list[Message] = Field(
         default_factory=list, description="List of conversation messages"
     )
 
@@ -127,9 +146,9 @@ class Conversation(BaseModel):
         self,
         role: Role,
         content: str,
-        model: Optional[str] = None,
-        persona: Optional[Persona] = None,
-        token_count: Optional[int] = None,
+        model: str | None = None,
+        persona: Persona | None = None,
+        token_count: int | None = None,
     ) -> Message:
         """Add a message to the conversation."""
         message = Message(
@@ -146,18 +165,20 @@ class Conversation(BaseModel):
         self.metadata.updated_at = datetime.now()
         return message
 
-    def get_openai_messages(self) -> List[Dict[str, str]]:
+    def get_openai_messages(self) -> list[dict[str, str]]:
         """Get messages in OpenAI API format."""
         return [msg.to_openai_format() for msg in self.messages]
 
-    def get_system_message(self) -> Optional[Message]:
+    def get_system_message(self) -> Message | None:
         """Get the system message if it exists."""
         for msg in self.messages:
             if msg.role == Role.SYSTEM:
                 return msg
         return None
 
-    def get_conversation_history(self, include_system: bool = True) -> List[Message]:
+    def get_conversation_history(
+        self, include_system: bool = True
+    ) -> list[Message]:
         """Get conversation history, optionally excluding system messages."""
         if include_system:
             return self.messages.copy()
@@ -166,7 +187,9 @@ class Conversation(BaseModel):
     def clear_messages(self, keep_system: bool = True):
         """Clear all messages, optionally keeping system message."""
         if keep_system:
-            system_messages = [msg for msg in self.messages if msg.role == Role.SYSTEM]
+            system_messages = [
+                msg for msg in self.messages if msg.role == Role.SYSTEM
+            ]
             self.messages = system_messages
         else:
             self.messages = []
@@ -174,11 +197,11 @@ class Conversation(BaseModel):
         self.metadata.message_count = len(self.messages)
         self.metadata.updated_at = datetime.now()
 
-    def export_to_dict(self) -> Dict[str, Any]:
+    def export_to_dict(self) -> dict[str, Any]:
         """Export conversation to dictionary format."""
         return self.dict()
 
-    def export_to_json(self, filepath: Optional[str] = None) -> str:
+    def export_to_json(self, filepath: str | None = None) -> str:
         """Export conversation to JSON format."""
         data = self.export_to_dict()
         json_str = json.dumps(data, indent=2, default=str)
@@ -190,7 +213,7 @@ class Conversation(BaseModel):
         return json_str
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "Conversation":
+    def from_dict(cls, data: dict[str, Any]) -> "Conversation":
         """Create conversation from dictionary."""
         return cls(**data)
 
@@ -203,7 +226,7 @@ class Conversation(BaseModel):
     @classmethod
     def from_json_file(cls, filepath: str) -> "Conversation":
         """Load conversation from JSON file."""
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             return cls.from_json(f.read())
 
     class Config:

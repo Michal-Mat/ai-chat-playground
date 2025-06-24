@@ -6,15 +6,15 @@ with OpenAI models while maintaining conversation history and state.
 """
 
 import logging
-from typing import Optional, List, TYPE_CHECKING
-from datetime import datetime
 import uuid
+from datetime import datetime
+from typing import TYPE_CHECKING, Optional
 
 from conversations.models import (
-    Message,
-    Conversation,
     ChatSettings,
+    Conversation,
     ConversationMetadata,
+    Message,
 )
 from conversations.types import Role
 
@@ -36,10 +36,10 @@ class ConversationManager:
         self,
         client,
         model: str = "gpt-3.5-turbo",
-        system_message: Optional[str] = None,
-        conversation_id: Optional[str] = None,
-        title: Optional[str] = None,
-        settings: Optional[ChatSettings] = None,
+        system_message: str | None = None,
+        conversation_id: str | None = None,
+        title: str | None = None,
+        settings: ChatSettings | None = None,
         repository: Optional["ConversationRepository"] = None,
     ):
         """
@@ -59,6 +59,7 @@ class ConversationManager:
         # Store repository (defaults to a new Mongo-backed repository)
         if repository is None:
             from persistence.mongo_repository import ConversationRepository
+
             repository = ConversationRepository()
         self.repository = repository
 
@@ -81,7 +82,9 @@ class ConversationManager:
         if system_message:
             self.add_system_message(system_message)
 
-        logger.info(f"ConversationManager initialized: {self.conversation.metadata.id}")
+        logger.info(
+            f"ConversationManager initialized: {self.conversation.metadata.id}"
+        )
 
     def add_system_message(self, content: str) -> Message:
         """Add a system message to set AI behavior."""
@@ -92,7 +95,7 @@ class ConversationManager:
         return self.conversation.add_message(Role.USER, content)
 
     def add_assistant_message(
-        self, content: str, token_count: Optional[int] = None
+        self, content: str, token_count: int | None = None
     ) -> Message:
         """Add an assistant message and record the model used."""
         model_name = self.conversation.settings.model
@@ -106,7 +109,7 @@ class ConversationManager:
         )
 
     async def get_ai_response_async(
-        self, settings_override: Optional[ChatSettings] = None
+        self, settings_override: ChatSettings | None = None
     ) -> str:
         """
         Get AI response asynchronously using current conversation state.
@@ -143,7 +146,9 @@ class ConversationManager:
             logger.error(error_msg)
             raise
 
-    def get_ai_response(self, settings_override: Optional[ChatSettings] = None) -> str:
+    def get_ai_response(
+        self, settings_override: ChatSettings | None = None
+    ) -> str:
         """
         Get AI response synchronously using current conversation state.
 
@@ -189,7 +194,9 @@ class ConversationManager:
             raise
 
     def chat(
-        self, user_message: str, settings_override: Optional[ChatSettings] = None
+        self,
+        user_message: str,
+        settings_override: ChatSettings | None = None,
     ) -> str:
         """Send a user message and get an AI response.
 
@@ -210,7 +217,9 @@ class ConversationManager:
         return self.get_ai_response(settings_override)
 
     async def chat_async(
-        self, user_message: str, settings_override: Optional[ChatSettings] = None
+        self,
+        user_message: str,
+        settings_override: ChatSettings | None = None,
     ) -> str:
         """
         Send a user message and get AI response asynchronously.
@@ -236,9 +245,11 @@ class ConversationManager:
             Updated ChatSettings instance
         """
         # Check if persona is being updated
-        persona_changed = 'persona' in kwargs
-        old_persona = self.conversation.settings.persona if persona_changed else None
-        new_persona = kwargs.get('persona') if persona_changed else None
+        persona_changed = "persona" in kwargs
+        old_persona = (
+            self.conversation.settings.persona if persona_changed else None
+        )
+        new_persona = kwargs.get("persona") if persona_changed else None
 
         current_settings = self.conversation.settings.dict()
         current_settings.update(kwargs)
@@ -256,7 +267,7 @@ class ConversationManager:
         )
         return new_settings
 
-    def get_messages(self, include_system: bool = True) -> List[Message]:
+    def get_messages(self, include_system: bool = True) -> list[Message]:
         """Get conversation messages."""
         return self.conversation.get_conversation_history(include_system)
 
@@ -301,7 +312,7 @@ class ConversationManager:
         logger.info(f"Conversation cleared: {self.conversation.metadata.id}")
         print("🧹 Conversation cleared!")
 
-    def export_conversation(self, filepath: Optional[str] = None) -> str:
+    def export_conversation(self, filepath: str | None = None) -> str:
         """
         Export conversation to JSON file.
 
@@ -388,13 +399,17 @@ class ConversationManager:
     def save_to_repository(self) -> None:
         """Persist the current conversation state to the configured repository."""
         self.repository.save(self.conversation)
-        logger.info(f"Conversation {self.conversation.metadata.id} saved to repository")
+        logger.info(
+            f"Conversation {self.conversation.metadata.id} saved to repository"
+        )
 
     def _auto_save(self) -> None:
         """Auto-save conversation if it has content (not empty)."""
         # Only save if conversation has user/assistant messages (not just system)
         non_system_messages = [
-            msg for msg in self.conversation.messages if msg.role != Role.SYSTEM
+            msg
+            for msg in self.conversation.messages
+            if msg.role != Role.SYSTEM
         ]
         if non_system_messages:
             self.save_to_repository()
@@ -406,7 +421,13 @@ class ConversationManager:
     def is_empty(self) -> bool:
         """Check if conversation is empty (no user/assistant messages)."""
         return (
-            len([msg for msg in self.conversation.messages if msg.role != Role.SYSTEM])
+            len(
+                [
+                    msg
+                    for msg in self.conversation.messages
+                    if msg.role != Role.SYSTEM
+                ]
+            )
             == 0
         )
 
@@ -420,6 +441,7 @@ class ConversationManager:
         """Retrieve a conversation by ID from the repository and return a manager instance."""
         if repository is None:
             from persistence.mongo_repository import ConversationRepository
+
             repository = ConversationRepository()
         repo = repository
         conversation = repo.get(conversation_id)
@@ -453,17 +475,22 @@ class ConversationManager:
             ):
                 # This is a persona system message, remove it
                 self.conversation.messages = [
-                    msg for msg in self.conversation.messages
+                    msg
+                    for msg in self.conversation.messages
                     if msg.role != Role.SYSTEM or msg != sys_msg
                 ]
-                logger.info(f"Cleared persona system prompt for conversation {self.conversation.metadata.id}")
+                logger.info(
+                    f"Cleared persona system prompt for conversation {self.conversation.metadata.id}"
+                )
         else:
             # Set persona system prompt
             if persona in PERSONAS:
                 persona_config = PERSONAS[persona]
                 system_message = persona_config["system_message"]
                 self.set_system_prompt(system_message)
-                logger.info(f"Set system prompt for persona {persona.value} in conversation {self.conversation.metadata.id}")
+                logger.info(
+                    f"Set system prompt for persona {persona.value} in conversation {self.conversation.metadata.id}"
+                )
 
     def set_system_prompt(self, content: str) -> Message:
         """Create or update the system prompt for the conversation."""
@@ -483,7 +510,7 @@ class ConversationManager:
     def _is_complex_task(
         self,
         prompt: str,
-        settings: Optional[ChatSettings] = None,
+        settings: ChatSettings | None = None,
     ) -> bool:
         """Return True if the prompt is complex according to the model."""
         settings = settings or self.conversation.settings
@@ -513,7 +540,7 @@ class ConversationManager:
     def _describe_task(
         self,
         prompt: str,
-        settings: Optional[ChatSettings] = None,
+        settings: ChatSettings | None = None,
     ) -> str:
         """Ask the model to describe what the user wants to do."""
         settings = settings or self.conversation.settings
@@ -537,8 +564,8 @@ class ConversationManager:
     def _plan_steps(
         self,
         description: str,
-        settings: Optional[ChatSettings] = None,
-    ) -> List[str]:
+        settings: ChatSettings | None = None,
+    ) -> list[str]:
         """Ask the model to lay out steps to solve the problem."""
         settings = settings or self.conversation.settings
         sys_msg = (
@@ -558,7 +585,7 @@ class ConversationManager:
         )
         plan_text = response.choices[0].message.content.strip()
         # naive parsing: split by newline and keep non-empty lines
-        steps: List[str] = []
+        steps: list[str] = []
         for line in plan_text.split("\n"):
             cleaned = line.strip(" -")
             if cleaned:
@@ -571,7 +598,7 @@ class ConversationManager:
         self,
         step: str,
         context: str,
-        settings: Optional[ChatSettings] = None,
+        settings: ChatSettings | None = None,
     ) -> str:
         """Ask the model to solve a single step."""
         settings = settings or self.conversation.settings
@@ -594,7 +621,7 @@ class ConversationManager:
     def _optimize_answer(
         self,
         compiled_answer: str,
-        settings: Optional[ChatSettings] = None,
+        settings: ChatSettings | None = None,
     ) -> str:
         """Ask the model to optimize the compiled answer."""
         settings = settings or self.conversation.settings
@@ -617,7 +644,7 @@ class ConversationManager:
     def chat_with_reasoning(
         self,
         user_message: str,
-        settings_override: Optional[ChatSettings] = None,
+        settings_override: ChatSettings | None = None,
     ) -> str:
         """Enhanced chat that performs multi-step reasoning when helpful."""
         settings = settings_override or self.conversation.settings
@@ -639,7 +666,7 @@ class ConversationManager:
         steps = self._plan_steps(description, settings)
         self.add_assistant_message("**Proposed steps:**\n" + "\n".join(steps))
 
-        step_answers: List[str] = []
+        step_answers: list[str] = []
         for idx, step in enumerate(steps, start=1):
             answer = self._solve_step(step, description, settings)
             step_answers.append(f"### Step {idx}: {step}\n{answer}")

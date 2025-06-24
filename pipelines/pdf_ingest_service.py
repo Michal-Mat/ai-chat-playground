@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import uuid
 from pathlib import Path
-from typing import List
 
 import pdfplumber  # type: ignore
-from pdf2image import convert_from_path  # type: ignore
 import pytesseract  # type: ignore
+from pdf2image import convert_from_path  # type: ignore
 from sentence_transformers import SentenceTransformer  # type: ignore
 from transformers import AutoTokenizer  # type: ignore
 
@@ -79,7 +78,7 @@ class PDFIngestService:
     # ------------------------------------------------------------------
     def _extract_text(self, pdf_path: Path) -> str:
         """Extract text from a PDF, using OCR when necessary."""
-        parts: List[str] = []
+        parts: list[str] = []
         with pdfplumber.open(pdf_path) as pdf:
             for page in pdf.pages:
                 text = page.extract_text() or ""
@@ -98,18 +97,20 @@ class PDFIngestService:
 
     def _chunk_text(
         self, text: str, chunk_size: int = 200, overlap: int = 40
-    ) -> List[str]:
+    ) -> list[str]:
         """Split text into token-aware chunks."""
         words = text.split()
-        chunks: List[str] = []
+        chunks: list[str] = []
         i = 0
         while i < len(words):
             # Expand window until token limit reached
-            current_words: List[str] = []
+            current_words: list[str] = []
             token_count = 0
             while i < len(words) and token_count < chunk_size:
                 current_words.append(words[i])
-                token_ids = self.tokenizer(" ".join(current_words))[  # noqa: E501
+                token_ids = self.tokenizer(
+                    " ".join(current_words)
+                )[  # noqa: E501
                     "input_ids"
                 ]
                 token_count = len(token_ids)

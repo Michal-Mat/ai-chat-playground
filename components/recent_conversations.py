@@ -4,8 +4,10 @@ Recent Conversations Component.
 Displays a list of recent conversations with load functionality.
 """
 
-import streamlit as st
 from typing import TYPE_CHECKING
+
+import streamlit as st
+
 from conversations.types import Role
 
 if TYPE_CHECKING:
@@ -16,7 +18,9 @@ class RecentConversationsComponent:
     """Component for displaying and managing recent conversations."""
 
     @staticmethod
-    def render(manager: "ConversationManager", max_conversations: int = 10) -> None:
+    def render(
+        manager: "ConversationManager", max_conversations: int = 10
+    ) -> None:
         """
         Render the recent conversations section.
 
@@ -27,7 +31,9 @@ class RecentConversationsComponent:
         st.subheader("📋 Recent Conversations")
 
         try:
-            recent_conversations = manager.repository.list(limit=max_conversations)
+            recent_conversations = manager.repository.list(
+                limit=max_conversations
+            )
 
             if recent_conversations:
                 for conv in recent_conversations:
@@ -41,7 +47,9 @@ class RecentConversationsComponent:
             st.error(f"Error loading conversations: {e}")
 
     @staticmethod
-    def _render_conversation_item(conversation, manager: "ConversationManager") -> None:
+    def _render_conversation_item(
+        conversation, manager: "ConversationManager"
+    ) -> None:
         """
         Render a single conversation item.
 
@@ -50,7 +58,9 @@ class RecentConversationsComponent:
             manager: The current conversation manager
         """
         # Create a short title for display
-        display_title = RecentConversationsComponent._get_display_title(conversation)
+        display_title = RecentConversationsComponent._get_display_title(
+            conversation
+        )
 
         # Show conversation with neat layout
         if st.button(
@@ -93,7 +103,11 @@ class RecentConversationsComponent:
         else:
             # Use first user message as title
             first_user_msg = next(
-                (msg.content for msg in conversation.messages if msg.role == Role.USER),
+                (
+                    msg.content
+                    for msg in conversation.messages
+                    if msg.role == Role.USER
+                ),
                 "Untitled",
             )
             return (

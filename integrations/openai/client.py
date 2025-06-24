@@ -1,10 +1,10 @@
-import os
 import logging
-from typing import Optional, List, Dict, Union
+import os
+
 from dotenv import load_dotenv
-from openai import OpenAI, AsyncOpenAI
+from openai import AsyncOpenAI, OpenAI
+from openai.types import Completion, CreateEmbeddingResponse
 from openai.types.chat import ChatCompletion
-from openai.types import CreateEmbeddingResponse, Completion
 
 # Load environment variables from .env file
 load_dotenv()
@@ -20,7 +20,7 @@ class OpenAIClient:
     """
 
     def __init__(
-        self, api_key: Optional[str] = None, organization: Optional[str] = None
+        self, api_key: str | None = None, organization: str | None = None
     ):
         """
         Initialize the OpenAI client.
@@ -50,10 +50,10 @@ class OpenAIClient:
 
     def chat_completion(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         model: str = "gpt-3.5-turbo",
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
+        max_tokens: int | None = None,
         **kwargs,
     ) -> ChatCompletion:
         """
@@ -85,10 +85,10 @@ class OpenAIClient:
 
     async def async_chat_completion(
         self,
-        messages: List[Dict[str, str]],
+        messages: list[dict[str, str]],
         model: str = "gpt-3.5-turbo",
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
+        max_tokens: int | None = None,
         **kwargs,
     ) -> ChatCompletion:
         """
@@ -113,7 +113,7 @@ class OpenAIClient:
         prompt: str,
         model: str = "gpt-3.5-turbo-instruct",
         temperature: float = 0.7,
-        max_tokens: Optional[int] = None,
+        max_tokens: int | None = None,
         **kwargs,
     ) -> Completion:
         """
@@ -145,7 +145,7 @@ class OpenAIClient:
 
     def create_embeddings(
         self,
-        text: Union[str, List[str]],
+        text: str | list[str],
         model: str = "text-embedding-3-small",
         **kwargs,
     ) -> CreateEmbeddingResponse:
@@ -161,14 +161,16 @@ class OpenAIClient:
             CreateEmbeddingResponse object
         """
         try:
-            response = self.client.embeddings.create(model=model, input=text, **kwargs)
+            response = self.client.embeddings.create(
+                model=model, input=text, **kwargs
+            )
             logger.info(f"Embeddings created with model: {model}")
             return response
         except Exception as e:
             logger.error(f"Error creating embeddings: {e}")
             raise
 
-    def list_models(self) -> List[str]:
+    def list_models(self) -> list[str]:
         """
         List available OpenAI models.
 
@@ -217,7 +219,7 @@ class OpenAIClient:
 
     def get_embedding_vector(
         self, text: str, model: str = "text-embedding-3-small"
-    ) -> List[float]:
+    ) -> list[float]:
         """
         Get embedding vector for a single text.
 
@@ -234,7 +236,7 @@ class OpenAIClient:
 
 # Convenience function to create a client instance
 def create_openai_client(
-    api_key: Optional[str] = None, organization: Optional[str] = None
+    api_key: str | None = None, organization: str | None = None
 ) -> OpenAIClient:
     """
     Create an OpenAI client instance.

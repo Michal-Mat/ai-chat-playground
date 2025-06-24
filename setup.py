@@ -9,8 +9,7 @@ After installation, you can import integrations from anywhere:
     from integrations.openai import OpenAIClient
 """
 
-from setuptools import setup, find_packages
-import os
+from setuptools import find_packages, setup
 
 setup(
     name="hugging",

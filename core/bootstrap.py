@@ -5,18 +5,19 @@ This module registers all services with the container and provides
 factory functions for creating properly configured instances.
 """
 
-from core.container import get_container, get_config
+from conversations.manager import ConversationManager
+from core.container import get_config, get_container
 from integrations.openai.client import OpenAIClient
 from persistence.mongo_repository import ConversationRepository
 from persistence.vector_store import QdrantVectorStore
 from pipelines.pdf_ingest_service import PDFIngestService
-from conversations.manager import ConversationManager
 
 
 def create_openai_client() -> OpenAIClient:
     """Factory function for OpenAI client."""
     return OpenAIClient(
-        api_key=get_config("openai_api_key"), organization=get_config("openai_org_id")
+        api_key=get_config("openai_api_key"),
+        organization=get_config("openai_org_id"),
     )
 
 
@@ -44,7 +45,8 @@ def create_pdf_ingest_service() -> PDFIngestService:
     container = get_container()
     vector_store = container.get("vector_store")
     return PDFIngestService(
-        vector_store=vector_store, embed_model_name=get_config("embedding_model")
+        vector_store=vector_store,
+        embed_model_name=get_config("embedding_model"),
     )
 
 
@@ -72,10 +74,14 @@ def register_services() -> None:
         "conversation_repository", create_conversation_repository
     )
     container.register_singleton("vector_store", create_vector_store)
-    container.register_singleton("pdf_ingest_service", create_pdf_ingest_service)
+    container.register_singleton(
+        "pdf_ingest_service", create_pdf_ingest_service
+    )
 
     # Register conversation manager as factory (new instance per use)
-    container.register_factory("conversation_manager", create_conversation_manager)
+    container.register_factory(
+        "conversation_manager", create_conversation_manager
+    )
 
 
 def setup_di() -> None:

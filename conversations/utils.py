@@ -5,21 +5,19 @@ This module provides convenience functions for creating and managing
 conversation instances.
 """
 
-from typing import Optional, Union
-
-from conversations.personas.personas import PERSONAS
 from conversations.manager import ConversationManager
 from conversations.models import ChatSettings
+from conversations.personas.personas import PERSONAS
 from conversations.types import Persona
 
 
 def create_conversation_manager(
     client,
     model: str = "gpt-3.5-turbo",
-    system_message: Optional[str] = None,
-    title: Optional[str] = None,
+    system_message: str | None = None,
+    title: str | None = None,
     temperature: float = 0.7,
-    max_tokens: Optional[int] = None,
+    max_tokens: int | None = None,
     **kwargs,
 ) -> ConversationManager:
     """
@@ -42,12 +40,18 @@ def create_conversation_manager(
     )
 
     return ConversationManager(
-        client=client, system_message=system_message, title=title, settings=settings
+        client=client,
+        system_message=system_message,
+        title=title,
+        settings=settings,
     )
 
 
 def create_persona_manager(
-    client, persona: Union[str, Persona], model: str = "gpt-3.5-turbo", **kwargs
+    client,
+    persona: str | Persona,
+    model: str = "gpt-3.5-turbo",
+    **kwargs,
 ) -> ConversationManager:
     """
     Create a ConversationManager with predefined persona.
@@ -75,7 +79,9 @@ def create_persona_manager(
 
     if persona not in personas:
         available = ", ".join(p.value for p in personas.keys())
-        raise ValueError(f"Unknown persona '{persona}'. Available: {available}")
+        raise ValueError(
+            f"Unknown persona '{persona}'. Available: {available}"
+        )
 
     persona_config = personas[persona]
 

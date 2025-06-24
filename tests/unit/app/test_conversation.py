@@ -1,6 +1,8 @@
 from unittest.mock import Mock
-from core.container import reset_container
+
 import pytest
+
+from core.container import reset_container
 
 
 class TestConversationFlow:

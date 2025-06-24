@@ -4,8 +4,10 @@ Sidebar Settings Component.
 Handles model selection, persona selection, and reasoning toggle.
 """
 
-import streamlit as st
 from typing import TYPE_CHECKING
+
+import streamlit as st
+
 from conversations.types import ChatModel, Persona
 
 if TYPE_CHECKING:
@@ -29,7 +31,9 @@ class SidebarSettingsComponent:
         st.header("Settings")
 
         # Model selection
-        updated_manager: ConversationManager = SidebarSettingsComponent._render_model_selection(manager)
+        updated_manager: ConversationManager = (
+            SidebarSettingsComponent._render_model_selection(manager)
+        )
 
         # Persona selection
         updated_manager = SidebarSettingsComponent._render_persona_selection(
@@ -76,7 +80,9 @@ class SidebarSettingsComponent:
         current_persona: str | None = manager.conversation.settings.persona
 
         default_index: int = (
-            persona_options.index(current_persona.value) if current_persona else 0
+            persona_options.index(current_persona.value)
+            if current_persona
+            else 0
         )
 
         selected_persona: str = st.selectbox(

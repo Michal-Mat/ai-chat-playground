@@ -4,8 +4,9 @@ Chat Input Component.
 Handles user input and AI response processing.
 """
 
-import streamlit as st
 from typing import TYPE_CHECKING
+
+import streamlit as st
 
 if TYPE_CHECKING:
     from conversations.manager import ConversationManager
@@ -31,7 +32,9 @@ class ChatInputComponent:
         return manager
 
     @staticmethod
-    def _handle_user_input(manager: "ConversationManager", prompt: str) -> None:
+    def _handle_user_input(
+        manager: "ConversationManager", prompt: str
+    ) -> None:
         """
         Handle user input and generate AI response.
 

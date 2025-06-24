@@ -4,8 +4,9 @@ New Conversation Component.
 Handles creating new conversations and displays usage statistics.
 """
 
-import streamlit as st
 from typing import TYPE_CHECKING
+
+import streamlit as st
 
 if TYPE_CHECKING:
     from conversations.manager import ConversationManager
@@ -28,7 +29,7 @@ class NewConversationComponent:
 
         if st.button("🆕 New Conversation", use_container_width=True):
             # Create new conversation manager
-            new_manager: "ConversationManager" = manager_class.from_client(
+            new_manager: ConversationManager = manager_class.from_client(
                 client=client,
                 repository=repository,
             )
@@ -57,19 +58,17 @@ class NewConversationComponent:
             with col1:
                 st.metric(
                     label="💬 Conversations",
-                    value=f"{stats['total_conversations']:,}"
+                    value=f"{stats['total_conversations']:,}",
                 )
 
             with col2:
                 st.metric(
-                    label="📨 Messages",
-                    value=f"{stats['total_messages']:,}"
+                    label="📨 Messages", value=f"{stats['total_messages']:,}"
                 )
 
             with col3:
                 st.metric(
-                    label="🪙 Tokens",
-                    value=f"{stats['total_tokens']:,}"
+                    label="🪙 Tokens", value=f"{stats['total_tokens']:,}"
                 )
 
         except Exception as e:

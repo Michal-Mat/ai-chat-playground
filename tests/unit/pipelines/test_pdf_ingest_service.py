@@ -15,12 +15,15 @@ class TestPDFIngestService:
 
         # Register mock
         container = get_container()
-        container.register_singleton("vector_store", lambda: self.mock_vector_store)
+        container.register_singleton(
+            "vector_store", lambda: self.mock_vector_store
+        )
 
     def test_pdf_ingestion_mocked(self):
         """Test PDF ingestion with mocked vector store."""
-        from pipelines.pdf_ingest_service import PDFIngestService
         from unittest.mock import patch
+
+        from pipelines.pdf_ingest_service import PDFIngestService
 
         # Create service with mocked dependency and mocked SentenceTransformer
         container = get_container()

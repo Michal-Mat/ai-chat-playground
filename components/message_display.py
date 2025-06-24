@@ -4,8 +4,10 @@ Message Display Component.
 Handles rendering of chat messages with proper formatting.
 """
 
-import streamlit as st
 from typing import TYPE_CHECKING
+
+import streamlit as st
+
 from conversations.types import Role
 
 if TYPE_CHECKING:
@@ -49,7 +51,9 @@ class MessageDisplayComponent:
         Args:
             message: The system message to render
         """
-        st.chat_message("assistant").markdown(f"🎯 _System prompt:_ {message.content}")
+        st.chat_message("assistant").markdown(
+            f"🎯 _System prompt:_ {message.content}"
+        )
 
     @staticmethod
     def _render_user_message(message: "Message") -> None:
@@ -123,7 +127,9 @@ class MessageDisplayComponent:
         )
 
         body = message.content
-        return any(body.lstrip().startswith(marker) for marker in reasoning_markers)
+        return any(
+            body.lstrip().startswith(marker) for marker in reasoning_markers
+        )
 
     @staticmethod
     def _render_reasoning_message(content: str) -> None:

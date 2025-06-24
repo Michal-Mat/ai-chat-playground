@@ -1,5 +1,6 @@
-from conversations.types.enums import Role
 import pytest
+
+from conversations.types.enums import Role
 
 
 class TestMessageFormatting:
@@ -40,7 +41,8 @@ class TestMessageFormatting:
 
         for message_body, expected_is_reasoning in test_messages:
             is_reasoning = any(
-                message_body.lstrip().startswith(marker) for marker in reasoning_markers
+                message_body.lstrip().startswith(marker)
+                for marker in reasoning_markers
             )
             assert is_reasoning == expected_is_reasoning
 

@@ -1,20 +1,21 @@
 import streamlit as st  # type: ignore
 from dotenv import load_dotenv
 
-# Import the bootstrap to setup DI
-from conversations.manager import ConversationManager
 import core.bootstrap  # noqa: F401
-from core.container import get_service
 
 # Import our UI components
 from components import (
+    ChatInputComponent,
+    MessageDisplayComponent,
+    NewConversationComponent,
     RecentConversationsComponent,
     SidebarSettingsComponent,
     SystemPromptEditorComponent,
-    MessageDisplayComponent,
-    ChatInputComponent,
-    NewConversationComponent,
 )
+
+# Import the bootstrap to setup DI
+from conversations.manager import ConversationManager
+from core.container import get_service
 
 # Load environment variables (e.g., OPENAI_API_KEY)
 load_dotenv()

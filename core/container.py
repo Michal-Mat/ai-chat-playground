@@ -5,10 +5,11 @@ This module implements a service locator pattern with factory support
 for managing application dependencies in a centralized way.
 """
 
-import os
-from typing import Any, Dict, Optional, Callable, TypeVar
-from dataclasses import dataclass, field
 import logging
+import os
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from typing import Any, TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -34,8 +35,8 @@ class ServiceContainer:
     """
 
     def __init__(self):
-        self._services: Dict[str, ServiceConfig] = {}
-        self._config: Dict[str, Any] = {}
+        self._services: dict[str, ServiceConfig] = {}
+        self._config: dict[str, Any] = {}
         self._load_config()
 
     def _load_config(self) -> None:
@@ -61,7 +62,9 @@ class ServiceContainer:
             "embedding_model": os.getenv(
                 "EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2"
             ),
-            "default_chat_model": os.getenv("DEFAULT_CHAT_MODEL", "gpt-3.5-turbo"),
+            "default_chat_model": os.getenv(
+                "DEFAULT_CHAT_MODEL", "gpt-3.5-turbo"
+            ),
         }
 
     def register_singleton(self, name: str, factory: Callable[[], T]) -> None:
@@ -113,7 +116,7 @@ class ServiceContainer:
 
 
 # Global container instance
-_container: Optional[ServiceContainer] = None
+_container: ServiceContainer | None = None
 
 
 def get_container() -> ServiceContainer:

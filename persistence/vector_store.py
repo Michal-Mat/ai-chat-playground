@@ -1,9 +1,7 @@
 """Light wrapper around QdrantClient for storing embeddings."""
 
-from typing import List, Optional
-
 from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams, PointStruct
+from qdrant_client.http.models import Distance, PointStruct, VectorParams
 
 
 class QdrantVectorStore:
@@ -36,8 +34,8 @@ class QdrantVectorStore:
     def upsert(
         self,
         vector_id: str,
-        embedding: List[float],
-        payload: Optional[dict] = None,
+        embedding: list[float],
+        payload: dict | None = None,
     ) -> None:
         """Upsert a single embedding vector."""
         point = PointStruct(id=vector_id, vector=embedding, payload=payload)
@@ -45,7 +43,7 @@ class QdrantVectorStore:
 
     def query(
         self,
-        embedding: List[float],
+        embedding: list[float],
         top_k: int = 5,
         **kwargs,
     ):

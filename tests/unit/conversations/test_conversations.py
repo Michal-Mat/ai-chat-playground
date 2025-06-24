@@ -4,10 +4,12 @@ Example tests showing how dependency injection makes testing easier.
 This demonstrates mocking dependencies and testing in isolation.
 """
 
+from unittest.mock import MagicMock, Mock
+
 import pytest
-from unittest.mock import Mock, MagicMock
-from core.container import get_container, reset_container
+
 from conversations.manager import ConversationManager
+from core.container import get_container, reset_container
 
 
 class TestConversationManagerWithDI:
@@ -30,7 +32,9 @@ class TestConversationManagerWithDI:
 
         # Register mocked services
         container = get_container()
-        container.register_singleton("openai_client", lambda: self.mock_openai_client)
+        container.register_singleton(
+            "openai_client", lambda: self.mock_openai_client
+        )
         container.register_singleton(
             "conversation_repository", lambda: self.mock_repository
         )

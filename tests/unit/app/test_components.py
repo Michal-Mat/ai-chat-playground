@@ -1,5 +1,6 @@
-from conversations.types.enums import ChatModel, Persona, Role
 import pytest
+
+from conversations.types.enums import ChatModel, Persona, Role
 
 
 class TestAppComponents:

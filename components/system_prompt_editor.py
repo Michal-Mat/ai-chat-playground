@@ -4,8 +4,10 @@ System Prompt Editor Component.
 Allows users to view and edit the system prompt.
 """
 
-import streamlit as st
 from typing import TYPE_CHECKING
+
+import streamlit as st
+
 from conversations.models import Message
 
 if TYPE_CHECKING:

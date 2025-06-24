@@ -28,5 +28,5 @@ pytest-snapshot>=0.9.0
 pytest-xdist>=3.6.1
 black>=23.7.0
 isort>=5.12.0
-ruff
+ruff==0.12.0
 -e .
