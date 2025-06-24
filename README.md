@@ -53,6 +53,23 @@ docker compose -f docker/local.yml ps
 ./test.sh --cov=conversations --cov=components
 ```
 
+### D. Code Quality Tools
+```bash
+# Format and lint code
+./format.sh
+
+# Setup pre-commit hooks (one-time)
+pre-commit install
+
+# Run pre-commit on all files
+pre-commit run --all-files
+
+# Manual tools
+black .                    # Format code
+ruff check . --fix         # Lint and auto-fix
+ruff format .              # Format with ruff
+```
+
 ## Module Structure
 
 ### Core Modules
