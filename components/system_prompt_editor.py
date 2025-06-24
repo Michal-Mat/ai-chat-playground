@@ -6,6 +6,7 @@ Allows users to view and edit the system prompt.
 
 import streamlit as st
 from typing import TYPE_CHECKING
+from conversations.models import Message
 
 if TYPE_CHECKING:
     from conversations.manager import ConversationManager
@@ -25,9 +26,11 @@ class SystemPromptEditorComponent:
         Returns:
             The potentially updated conversation manager
         """
+        st.header("System prompt editor")
+
         # Get current system message
-        sys_msg = manager.conversation.get_system_message()
-        current_sys_prompt = sys_msg.content if sys_msg else ""
+        sys_msg: Message | None = manager.conversation.get_system_message()
+        current_sys_prompt: str = sys_msg.content if sys_msg else ""
 
         st.caption(f"_Current prompt:_ {current_sys_prompt or '—'}")
 

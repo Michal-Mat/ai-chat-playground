@@ -29,7 +29,7 @@ class SidebarSettingsComponent:
         st.header("Settings")
 
         # Model selection
-        updated_manager = SidebarSettingsComponent._render_model_selection(manager)
+        updated_manager: ConversationManager = SidebarSettingsComponent._render_model_selection(manager)
 
         # Persona selection
         updated_manager = SidebarSettingsComponent._render_persona_selection(
@@ -48,14 +48,14 @@ class SidebarSettingsComponent:
         manager: "ConversationManager",
     ) -> "ConversationManager":
         """Render model selection dropdown."""
-        model_options = [m.value for m in ChatModel]
-        default_index = (
+        model_options: list[str] = [m.value for m in ChatModel]
+        default_index: int = (
             model_options.index(manager.conversation.settings.model)
             if manager.conversation.settings.model in model_options
             else 0
         )
 
-        selected_model = st.selectbox(
+        selected_model: str = st.selectbox(
             "OpenAI model",
             options=model_options,
             index=default_index,
@@ -72,21 +72,21 @@ class SidebarSettingsComponent:
         manager: "ConversationManager",
     ) -> "ConversationManager":
         """Render persona selection dropdown."""
-        persona_options = ["None"] + [p.value for p in Persona]
-        current_persona = manager.conversation.settings.persona
+        persona_options: list[str] = ["None"] + [p.value for p in Persona]
+        current_persona: str | None = manager.conversation.settings.persona
 
-        default_index = (
+        default_index: int = (
             persona_options.index(current_persona.value) if current_persona else 0
         )
 
-        selected_persona = st.selectbox(
+        selected_persona: str = st.selectbox(
             "Assistant persona",
             options=persona_options,
             index=default_index,
         )
 
         if selected_persona == "None":
-            persona_obj = None
+            persona_obj: Persona | None = None
         else:
             persona_obj = Persona(selected_persona)
 
@@ -101,8 +101,8 @@ class SidebarSettingsComponent:
         manager: "ConversationManager",
     ) -> "ConversationManager":
         """Render reasoning feature toggle."""
-        reasoning_enabled = st.checkbox(
-            "🧠 Enable multi-step reasoning",
+        reasoning_enabled: bool = st.checkbox(
+            "🧠 multi-step reasoning",
             value=manager.conversation.settings.reasoning,
         )
 

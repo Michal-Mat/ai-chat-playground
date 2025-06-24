@@ -24,9 +24,11 @@ class NewConversationComponent:
             client: The OpenAI client
             repository: The conversation repository
         """
+        st.header("Controls")
+
         if st.button("🆕 New Conversation", use_container_width=True):
             # Create new conversation manager
-            new_manager = manager_class.from_client(
+            new_manager: "ConversationManager" = manager_class.from_client(
                 client=client,
                 repository=repository,
             )
