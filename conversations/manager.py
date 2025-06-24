@@ -230,12 +230,21 @@ class ConversationManager:
         Returns:
             Updated ChatSettings instance
         """
+        # Check if persona is being updated
+        persona_changed = 'persona' in kwargs
+        old_persona = self.conversation.settings.persona if persona_changed else None
+        new_persona = kwargs.get('persona') if persona_changed else None
+
         current_settings = self.conversation.settings.dict()
         current_settings.update(kwargs)
 
         new_settings = ChatSettings(**current_settings)
         self.conversation.settings = new_settings
         self.conversation.metadata.updated_at = datetime.now()
+
+        # Auto-update system prompt when persona changes
+        if persona_changed and old_persona != new_persona:
+            self._update_system_prompt_for_persona(new_persona)
 
         logger.info(
             f"Settings updated for conversation {self.conversation.metadata.id}"
@@ -417,6 +426,36 @@ class ConversationManager:
     # ------------------------------------------------------------------
     # System prompt utilities
     # ------------------------------------------------------------------
+
+    def _update_system_prompt_for_persona(self, persona) -> None:
+        """
+        Update system prompt based on persona selection.
+
+        Args:
+            persona: The persona to set (or None to clear)
+        """
+        from conversations.personas.personas import PERSONAS
+
+        if persona is None:
+            # Clear persona-specific system prompt, but don't remove custom ones
+            sys_msg = self.conversation.get_system_message()
+            if sys_msg and any(
+                sys_msg.content == config["system_message"]
+                for config in PERSONAS.values()
+            ):
+                # This is a persona system message, remove it
+                self.conversation.messages = [
+                    msg for msg in self.conversation.messages
+                    if msg.role != Role.SYSTEM or msg != sys_msg
+                ]
+                logger.info(f"Cleared persona system prompt for conversation {self.conversation.metadata.id}")
+        else:
+            # Set persona system prompt
+            if persona in PERSONAS:
+                persona_config = PERSONAS[persona]
+                system_message = persona_config["system_message"]
+                self.set_system_prompt(system_message)
+                logger.info(f"Set system prompt for persona {persona.value} in conversation {self.conversation.metadata.id}")
 
     def set_system_prompt(self, content: str) -> Message:
         """Create or update the system prompt for the conversation."""
