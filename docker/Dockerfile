@@ -20,17 +20,11 @@ RUN apt-get update && apt-get install -y \
     poppler-utils \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better Docker layer caching
-COPY requirements-prod.txt .
-
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements-prod.txt
-
-# Copy the entire application
+# Copy the entire application first
 COPY . .
 
-# Install the package in development mode
-RUN pip install -e .
+# Install Python dependencies from production requirements
+RUN pip install --no-cache-dir -r requirements-prod.txt
 
 # Create a non-root user for security
 RUN useradd --create-home --shell /bin/bash app \
