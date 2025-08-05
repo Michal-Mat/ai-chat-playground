@@ -1,0 +1,6 @@
+---
+description: services registration for the app
+globs:
+alwaysApply: false
+---
+every new object that shall be accessed by the app shall be registered using the ./core/bootstrap.py

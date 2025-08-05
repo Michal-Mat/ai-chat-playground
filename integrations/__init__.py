@@ -6,11 +6,24 @@ with proper data validation and type safety.
 
 Available modules:
 - openai: OpenAI API integration with client wrapper
+- search: Search integration with DuckDuckGo client
 - conversations: Conversation management with Pydantic models
 """
 
 # OpenAI integration
 from .openai import OpenAIClient, create_openai_client
+
+# Search integration
+try:
+    from .search import (
+        DuckDuckGoClient,
+        DuckDuckGoRateLimitError,
+        DuckDuckGoSearchError,
+    )
+
+    _search_available = True
+except ImportError:
+    _search_available = False
 
 # Import conversations at package level for convenience
 try:
@@ -32,6 +45,16 @@ __all__ = [
     "OpenAIClient",
     "create_openai_client",
 ]
+
+# Add search to __all__ if available
+if _search_available:
+    __all__.extend(
+        [
+            "DuckDuckGoClient",
+            "DuckDuckGoSearchError",
+            "DuckDuckGoRateLimitError",
+        ]
+    )
 
 # Add conversations to __all__ if available
 if _conversations_available:
