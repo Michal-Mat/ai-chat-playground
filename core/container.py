@@ -10,6 +10,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Any, TypeVar
 
+from .config import AppConfig
 from .config import get_config as get_app_config
 
 logger = logging.getLogger(__name__)
@@ -42,6 +43,10 @@ class ServiceContainer:
     def get_config_value(self, key: str, default: Any = None) -> Any:
         """Get configuration value from centralized config."""
         return self._app_config.get(key, default)
+
+    def get_config_instance(self) -> AppConfig:
+        """Get the config instance directly."""
+        return self._app_config
 
     def register_singleton(self, name: str, factory: Callable[[], T]) -> None:
         """Register a singleton service."""
@@ -128,3 +133,8 @@ def get_service(name: str) -> Any:
 def get_config(key: str, default: Any = None) -> Any:
     """Get configuration value."""
     return get_container().get_config(key, default)
+
+
+def get_config_instance() -> AppConfig:
+    """Get the config instance directly."""
+    return get_container().get_config_instance()

@@ -1,91 +1,22 @@
 """
-Web Search Tool for Pydantic-AI
+Web Search Tool for pydantic-ai
 
-This module defines a web search tool using pydantic-ai that can be used
-with AI agents to perform web searches via DuckDuckGo.
+This module provides a web search tool that integrates with DuckDuckGo
+for searching the web and retrieving current information.
 """
 
 import logging
 import time
 from typing import Any
 
-from pydantic import BaseModel, Field
-
-from core.config import get_config
-from integrations.search import DuckDuckGoClient
+from core.config import AppConfig
+from integrations.search.duckduckgo_client import DuckDuckGoClient
 from integrations.search.exceptions import DuckDuckGoSearchError
+from tools.web_search.models.input import WebSearchInput
+from tools.web_search.models.output import WebSearchOutput
 
 # Configure logging
 logger = logging.getLogger(__name__)
-
-
-class WebSearchInput(BaseModel):
-    """
-    Input parameters for web search tool.
-    """
-
-    query: str = Field(
-        description="Search query to execute",
-        min_length=1,
-        max_length=1000,
-    )
-    region: str = Field(
-        description="Search region (e.g., us-en, uk-en)",
-        pattern=r"^[a-z]{2}-[a-z]{2}$",
-    )
-    safesearch: str = Field(
-        description="Safe search level (off, moderate, strict)",
-        pattern=r"^(off|moderate|strict)$",
-    )
-    max_results: int = Field(
-        description="Maximum number of results to return",
-        ge=1,
-        le=50,
-    )
-
-    def __init__(self, **data):
-        config = get_config()
-        # Set defaults from centralized config if not provided
-        if "region" not in data:
-            data["region"] = config.web_search_default_region
-        if "safesearch" not in data:
-            data["safesearch"] = config.web_search_default_safesearch
-        if "max_results" not in data:
-            data["max_results"] = config.web_search_max_results
-        super().__init__(**data)
-
-
-class WebSearchOutput(BaseModel):
-    """
-    Output from web search tool.
-    """
-
-    success: bool = Field(
-        description="Whether the search was successful",
-    )
-    query: str = Field(
-        description="Original search query",
-    )
-    results: list[dict[str, str]] = Field(
-        description="List of search results with title, url, and snippet",
-        default_factory=list,
-    )
-    total_results: int = Field(
-        description="Total number of results found",
-        default=0,
-    )
-    search_time_ms: float = Field(
-        description="Search execution time in milliseconds",
-        default=0.0,
-    )
-    error_message: str = Field(
-        description="Error message if search failed",
-        default="",
-    )
-    source: str = Field(
-        description="Search source/provider",
-        default="duckduckgo",
-    )
 
 
 class WebSearchTool:
@@ -95,17 +26,19 @@ class WebSearchTool:
 
     def __init__(
         self,
-        client: DuckDuckGoClient | None = None,
+        config: AppConfig,
+        search_client: DuckDuckGoClient,
     ) -> None:
         """
         Initialize the web search tool.
 
         Args:
+            config: Application configuration instance
             client: DuckDuckGo client instance (creates new one if None)
         """
-        self.client = client or DuckDuckGoClient()
-        self.config = get_config()
-        self._tool_schema = self._create_tool_schema()
+        self.config: AppConfig = config
+        self.client: DuckDuckGoClient = search_client
+        self._tool_schema: dict[str, Any] = self._create_tool_schema()
 
         logger.info("Web search tool initialized")
 
@@ -354,15 +287,17 @@ class WebSearchTool:
 
 # Convenience function to create a web search tool
 def create_web_search_tool(
-    client: DuckDuckGoClient | None = None,
+    config: AppConfig,
+    client: DuckDuckGoClient,
 ) -> WebSearchTool:
     """
     Create a web search tool instance.
 
     Args:
+        config: Application configuration instance
         client: DuckDuckGo client instance (creates new one if None)
 
     Returns:
         WebSearchTool instance
     """
-    return WebSearchTool(client=client)
+    return WebSearchTool(config=config, search_client=client)

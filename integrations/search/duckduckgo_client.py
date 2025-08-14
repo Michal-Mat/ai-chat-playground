@@ -1,8 +1,8 @@
 """
 DuckDuckGo XML API Client
 
-This module provides a client for interacting with DuckDuckGo's XML API
-for web search functionality with proper error handling and rate limiting.
+This module provides a client for the DuckDuckGo XML API with proper
+error handling, rate limiting, and async support.
 """
 
 import asyncio
@@ -14,11 +14,9 @@ from xml.etree import ElementTree
 import aiohttp
 import requests
 
-from core.config import get_config
+from core.config import AppConfig
+from integrations.search.exceptions import DuckDuckGoSearchError
 
-from .exceptions import DuckDuckGoRateLimitError, DuckDuckGoSearchError
-
-# Configure logging
 logger = logging.getLogger(__name__)
 
 
@@ -27,11 +25,14 @@ class DuckDuckGoClient:
     Client for DuckDuckGo XML API with proper error handling and rate limiting.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, config: AppConfig) -> None:
         """
-        Initialize the DuckDuckGo client using centralized configuration.
+        Initialize the DuckDuckGo client using injected configuration.
+
+        Args:
+            config: Application configuration instance
         """
-        self.config = get_config()
+        self.config: AppConfig = config
         self.session: requests.Session | None = None
         self.async_session: aiohttp.ClientSession | None = None
         self._last_request_time: float = 0.0
@@ -204,9 +205,7 @@ class DuckDuckGoClient:
             except requests.exceptions.HTTPError as e:
                 if e.response.status_code == 429:
                     logger.warning("Rate limit exceeded")
-                    raise DuckDuckGoRateLimitError(
-                        "Rate limit exceeded"
-                    ) from e
+                    raise DuckDuckGoSearchError("Rate limit exceeded") from e
                 logger.error(f"HTTP error {e.response.status_code}: {e}")
                 if attempt == self.config.web_search_max_retries:
                     raise DuckDuckGoSearchError(f"HTTP error: {e}") from e
@@ -285,19 +284,10 @@ class DuckDuckGoClient:
                 )
                 return parsed_response
 
-            except asyncio.TimeoutError:
-                logger.warning(f"Request timeout for query: {query}")
-                if attempt == self.config.web_search_max_retries:
-                    raise DuckDuckGoSearchError(
-                        f"Request timeout after {self.config.web_search_max_retries} retries"
-                    ) from None
-
             except aiohttp.ClientResponseError as e:
                 if e.status == 429:
                     logger.warning("Rate limit exceeded")
-                    raise DuckDuckGoRateLimitError(
-                        "Rate limit exceeded"
-                    ) from e
+                    raise DuckDuckGoSearchError("Rate limit exceeded") from e
                 logger.error(f"HTTP error {e.status}: {e}")
                 if attempt == self.config.web_search_max_retries:
                     raise DuckDuckGoSearchError(f"HTTP error: {e}") from e

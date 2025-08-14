@@ -6,26 +6,28 @@ factory functions for creating properly configured instances.
 """
 
 from conversations.manager import ConversationManager
-from core.config import get_config
+from core.config import AppConfig, get_config
 from core.container import get_container
 from integrations.openai.client import OpenAIClient
+from integrations.search.duckduckgo_client import DuckDuckGoClient
 from persistence.mongo_repository import ConversationRepository
 from persistence.vector_store import QdrantVectorStore
 from pipelines.pdf_ingest_service import PDFIngestService
+from tools.web_search.search_tool import WebSearchTool
 
 
-def create_openai_client() -> OpenAIClient:
+def create_openai_client(config: AppConfig) -> OpenAIClient:
     """Factory function for OpenAI client."""
-    config = get_config()
     return OpenAIClient(
         api_key=config.openai_api_key,
         organization=config.openai_org_id,
     )
 
 
-def create_conversation_repository() -> ConversationRepository:
+def create_conversation_repository(
+    config: AppConfig,
+) -> ConversationRepository:
     """Factory function for conversation repository."""
-    config = get_config()
     return ConversationRepository(
         mongo_uri=config.mongo_uri,
         db_name=config.mongo_db_name,
@@ -33,9 +35,8 @@ def create_conversation_repository() -> ConversationRepository:
     )
 
 
-def create_vector_store() -> QdrantVectorStore:
+def create_vector_store(config: AppConfig) -> QdrantVectorStore:
     """Factory function for vector store."""
-    config = get_config()
     return QdrantVectorStore(
         host=config.qdrant_host,
         port=config.qdrant_port,
@@ -44,23 +45,21 @@ def create_vector_store() -> QdrantVectorStore:
     )
 
 
-def create_pdf_ingest_service() -> PDFIngestService:
+def create_pdf_ingest_service(config: AppConfig) -> PDFIngestService:
     """Factory function for PDF ingest service."""
     container = get_container()
     vector_store = container.get("vector_store")
-    config = get_config()
     return PDFIngestService(
         vector_store=vector_store,
         embed_model_name=config.embedding_model,
     )
 
 
-def create_conversation_manager() -> ConversationManager:
+def create_conversation_manager(config: AppConfig) -> ConversationManager:
     """Factory function for conversation manager."""
     container = get_container()
     openai_client = container.get("openai_client")
     repository = container.get("conversation_repository")
-    config = get_config()
 
     return ConversationManager(
         client=openai_client,
@@ -69,30 +68,62 @@ def create_conversation_manager() -> ConversationManager:
     )
 
 
-def register_services() -> None:
+def create_duckduckgo_client(config: AppConfig) -> DuckDuckGoClient:
+    """Factory function for DuckDuckGo client."""
+    return DuckDuckGoClient(config=config)
+
+
+def create_web_search_tool(config: AppConfig) -> WebSearchTool:
+    """Factory function for web search tool."""
+    container = get_container()
+    duckduckgo_client = container.get("duckduckgo_client")
+    return WebSearchTool(config=config, search_client=duckduckgo_client)
+
+
+def register_services(config: AppConfig) -> None:
     """Register all services with the container."""
     container = get_container()
 
-    # Register core services as singletons
+    # Register config as singleton
+    container.register_singleton("config", lambda: config)
 
-    container.register_singleton("openai_client", create_openai_client)
+    # Register core services as singletons with config injection
     container.register_singleton(
-        "conversation_repository", create_conversation_repository
+        "openai_client", lambda: create_openai_client(config)
     )
-    container.register_singleton("vector_store", create_vector_store)
     container.register_singleton(
-        "pdf_ingest_service", create_pdf_ingest_service
+        "conversation_repository",
+        lambda: create_conversation_repository(config),
+    )
+    container.register_singleton(
+        "vector_store", lambda: create_vector_store(config)
+    )
+    container.register_singleton(
+        "pdf_ingest_service", lambda: create_pdf_ingest_service(config)
+    )
+
+    # Register search services
+    container.register_singleton(
+        "duckduckgo_client", lambda: create_duckduckgo_client(config)
+    )
+    container.register_singleton(
+        "web_search_tool", lambda: create_web_search_tool(config)
     )
 
     # Register conversation manager as factory (new instance per use)
     container.register_factory(
-        "conversation_manager", create_conversation_manager
+        "conversation_manager", lambda: create_conversation_manager(config)
     )
 
 
 def setup_di() -> None:
     """Setup dependency injection for the application."""
-    register_services()
+    # Initialize config once at startup
+    config = get_config()
+    config.validate_required()
+
+    # Register all services with the initialized config
+    register_services(config=config)
 
 
 # Auto-register services when module is imported
