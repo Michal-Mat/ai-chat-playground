@@ -70,42 +70,6 @@ class AppConfig:
             "DEFAULT_CHAT_MODEL", "gpt-3.5-turbo"
         )
 
-        # Web Search Configuration
-        self.web_search_base_url: str = os.getenv(
-            "WEB_SEARCH_BASE_URL", "https://api.duckduckgo.com/"
-        )
-        self.web_search_timeout: int = int(
-            os.getenv("WEB_SEARCH_TIMEOUT", "30")
-        )
-        self.web_search_max_retries: int = int(
-            os.getenv("WEB_SEARCH_MAX_RETRIES", "3")
-        )
-        self.web_search_retry_delay: float = float(
-            os.getenv("WEB_SEARCH_RETRY_DELAY", "1.0")
-        )
-        self.web_search_rate_limit_delay: float = float(
-            os.getenv("WEB_SEARCH_RATE_LIMIT_DELAY", "1.0")
-        )
-        self.web_search_user_agent: str = os.getenv(
-            "WEB_SEARCH_USER_AGENT",
-            "Mozilla/5.0 (compatible; WebSearchTool/1.0)",
-        )
-        self.web_search_max_results: int = int(
-            os.getenv("WEB_SEARCH_MAX_RESULTS", "10")
-        )
-        self.web_search_default_region: str = os.getenv(
-            "WEB_SEARCH_DEFAULT_REGION", "us-en"
-        )
-        self.web_search_default_safesearch: str = os.getenv(
-            "WEB_SEARCH_DEFAULT_SAFESEARCH", "moderate"
-        )
-        self.web_search_enable_caching: bool = (
-            os.getenv("WEB_SEARCH_ENABLE_CACHING", "false").lower() == "true"
-        )
-        self.web_search_cache_ttl_seconds: int = int(
-            os.getenv("WEB_SEARCH_CACHE_TTL_SECONDS", "3600")
-        )
-
     def get(self, key: str, default: Any = None) -> Any:
         """Get configuration value by key."""
         return getattr(self, key, default)

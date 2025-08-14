@@ -9,11 +9,9 @@ from conversations.manager import ConversationManager
 from core.config import AppConfig, get_config
 from core.container import get_container
 from integrations.openai.client import OpenAIClient
-from integrations.search.duckduckgo_client import DuckDuckGoClient
 from persistence.mongo_repository import ConversationRepository
 from persistence.vector_store import QdrantVectorStore
 from pipelines.pdf_ingest_service import PDFIngestService
-from tools.web_search.search_tool import WebSearchTool
 
 
 def create_openai_client(config: AppConfig) -> OpenAIClient:
@@ -68,18 +66,6 @@ def create_conversation_manager(config: AppConfig) -> ConversationManager:
     )
 
 
-def create_duckduckgo_client(config: AppConfig) -> DuckDuckGoClient:
-    """Factory function for DuckDuckGo client."""
-    return DuckDuckGoClient(config=config)
-
-
-def create_web_search_tool(config: AppConfig) -> WebSearchTool:
-    """Factory function for web search tool."""
-    container = get_container()
-    duckduckgo_client = container.get("duckduckgo_client")
-    return WebSearchTool(config=config, search_client=duckduckgo_client)
-
-
 def register_services(config: AppConfig) -> None:
     """Register all services with the container."""
     container = get_container()
@@ -100,14 +86,6 @@ def register_services(config: AppConfig) -> None:
     )
     container.register_singleton(
         "pdf_ingest_service", lambda: create_pdf_ingest_service(config)
-    )
-
-    # Register search services
-    container.register_singleton(
-        "duckduckgo_client", lambda: create_duckduckgo_client(config)
-    )
-    container.register_singleton(
-        "web_search_tool", lambda: create_web_search_tool(config)
     )
 
     # Register conversation manager as factory (new instance per use)
