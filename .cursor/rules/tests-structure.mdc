@@ -1,0 +1,10 @@
+---
+alwaysApply: false
+description: project tests structure
+---
+1.tests shall be placed in tests folder
+2. general structure of folders tests/unit/top_level_folder_or_functionality/module
+3. examples:
+tests for app code shall be in test/unit/app/test_part_of_functionality
+tests for pipelines shall be tests/unit/pipelines/test_part_of_functionality
+4. every folder shall have __init__.py

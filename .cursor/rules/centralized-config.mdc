@@ -1,0 +1,6 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+config shall be init along with other services and passed as dependency injection, config shall be loaded from .env if key does not exists it should default

@@ -12,7 +12,6 @@ Available modules:
 # OpenAI integration
 from .openai import OpenAIClient, create_openai_client
 
-# Import conversations at package level for convenience
 try:
     from conversations import (
         ChatSettings,

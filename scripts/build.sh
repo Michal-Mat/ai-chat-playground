@@ -14,11 +14,11 @@ FULL_IMAGE_NAME="${IMAGE_NAME}:${TAG}"
 
 echo "🐳 Building Docker image: ${FULL_IMAGE_NAME}"
 echo "📁 Build context: ${PROJECT_ROOT}"
-echo "🐳 Dockerfile: ${SCRIPT_DIR}/Dockerfile"
+echo "🐳 Dockerfile: ${PROJECT_ROOT}/docker/Dockerfile"
 
 # Build the Docker image from project root with dockerfile in docker/
 docker build \
-    --file "${SCRIPT_DIR}/Dockerfile" \
+    --file "${PROJECT_ROOT}/docker/Dockerfile" \
     --tag "${FULL_IMAGE_NAME}" \
     --build-arg BUILDKIT_INLINE_CACHE=1 \
     --progress=plain \
@@ -36,5 +36,5 @@ echo "🚀 To run the application:"
 echo "   docker run -p 8501:8501 --env-file ${PROJECT_ROOT}/.env ${FULL_IMAGE_NAME}"
 echo ""
 echo "🔧 To run with external services (MongoDB, Qdrant):"
-echo "   docker compose -f ${SCRIPT_DIR}/local.yml up -d  # Start services"
+echo "   docker compose -f ${PROJECT_ROOT}/docker/local.yml up -d  # Start services"
 echo "   docker run -p 8501:8501 --env-file ${PROJECT_ROOT}/.env --network hugging_default ${FULL_IMAGE_NAME}"
