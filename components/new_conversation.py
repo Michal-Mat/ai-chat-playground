@@ -10,13 +10,19 @@ import streamlit as st
 
 if TYPE_CHECKING:
     from conversations.manager import ConversationManager
+    from integrations.openai.client import OpenAIClient
+    from persistence.mongo_repository import ConversationRepository
 
 
 class NewConversationComponent:
     """Component for creating new conversations and showing statistics."""
 
     @staticmethod
-    def render(manager_class, client, repository) -> None:
+    def render(
+        manager_class: type["ConversationManager"],
+        client: "OpenAIClient",
+        repository: "ConversationRepository",
+    ) -> None:
         """
         Render the new conversation button and usage statistics.
 
@@ -29,7 +35,7 @@ class NewConversationComponent:
 
         if st.button("🆕 New Conversation", use_container_width=True):
             # Create new conversation manager
-            new_manager: ConversationManager = manager_class.from_client(
+            new_manager: ConversationManager = manager_class(
                 client=client,
                 repository=repository,
             )
@@ -40,7 +46,7 @@ class NewConversationComponent:
         NewConversationComponent._render_statistics(repository)
 
     @staticmethod
-    def _render_statistics(repository) -> None:
+    def _render_statistics(repository: "ConversationRepository") -> None:
         """
         Render usage statistics from MongoDB.
 
